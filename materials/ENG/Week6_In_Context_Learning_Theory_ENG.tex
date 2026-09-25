@@ -1,0 +1,438 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar -- English Study Notes
+% Compile with:
+%   xelatex FILENAME.tex
+%   xelatex FILENAME.tex
+% or: latexmk -xelatex FILENAME.tex
+% =====================================================================
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[unicode,bookmarks=false]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\hypersetup{colorlinks=true,linkcolor=NoteBlue,citecolor=NoteBlue,urlcolor=NoteBlue}
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{}{\footnotesize In-Context Learning Theory}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+\makechapterstyle{seminarnotes}{
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\grad}{\nabla}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Tr}{Tr}
+\tcbset{seminarbox/.style={enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,fonttitle=\bfseries\small,coltitle=black,attach title to upper={\quad}}}
+\newtcolorbox{keybox}[1][]{seminarbox,colback=NoteBlueLight,borderline west={1.8pt}{0pt}{NoteBlue},title={Key point#1}}
+\newtcolorbox{paperbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={From the original paper#1}}
+\newtcolorbox{suppbox}[1][]{seminarbox,colback=NoteWarmLight,borderline west={1.8pt}{0pt}{NoteWarm},title={Supplementary derivation#1}}
+\newtcolorbox{warningbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={Caution#1}}
+\newtcolorbox{presentbox}{seminarbox,colback=white,borderline west={2.2pt}{0pt}{black!70},fontupper=\footnotesize,top=1.2mm,bottom=1.2mm,before={\par},before skip=0.5em,after skip=0.5em,title={How to say it in the presentation}}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\begin{document}
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 6\par}
+\vspace{1.4cm}
+{\HUGE\bfseries In-Context Learning Theory\par}
+\vspace{0.55cm}
+{\large English seminar study notes\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+\begin{minipage}{0.86\textwidth}
+\small
+These notes are an English companion to the seminar handout.  The emphasis is on
+mathematical derivations that can be followed line by line, on separating theorem
+statements from interpretation, and on identifying the assumptions under which each
+claim is valid.
+\end{minipage}
+\vfill
+{\small\textbf{Primary readings}\\[0.25em]
+von Oswald et al., \textbf{Transformers Learn In-Context by Gradient Descent}.\\Aky\"urek et al., \textbf{What Learning Algorithm Is In-Context Learning?}\\Xie et al., \textbf{An Explanation of In-Context Learning as Implicit Bayesian Inference}.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+\tableofcontents*
+\clearpage
+
+\chapter{Problem setup and notation}
+\section{What in-context learning means mathematically}
+An in-context learner receives a prompt containing demonstrations
+\[
+D=\{(x_1,y_1),\ldots,(x_n,y_n)\}
+\]
+and a query $x_{n+1}$, then predicts
+\[
+\hat y_{n+1}=F_\Theta(D,x_{n+1})
+\]
+without changing the model parameters $\Theta$ at test time.  The central theoretical question is what computation the forward pass performs on $D$.
+
+\section{Three distinct explanatory levels}
+\begin{enumerate}
+\item \textbf{Optimization view:} the forward pass implements steps of an algorithm such as GD or ridge regression.
+\item \textbf{Bayesian view:} the prompt updates a posterior over latent tasks or parameters.
+\item \textbf{Meta-learning view:} pretraining amortizes a task-adaptation procedure into the activations.
+\end{enumerate}
+These are not mutually exclusive; a posterior mean can coincide with a regularized optimizer, and a meta-trained network can implement that computation.
+
+\begin{presentbox}
+Do not ask ``Which interpretation is the one true mechanism?'' before fixing the data model, architecture, and training distribution.  Different theorems establish different levels of equivalence.
+\end{presentbox}
+
+\chapter{Linear regression as a common test bed}
+\section{Ordinary least squares}
+Let $X\in\R^{n\times d}$ have rows $x_i^\top$ and $y\in\R^n$.  OLS minimizes
+\[
+L(w)=\frac12\|Xw-y\|^2.
+\]
+If $X^\top X$ is invertible,
+\[
+\hat w_{\mathrm{OLS}}=(X^\top X)^{-1}X^\top y.
+\]
+A query prediction is $\hat y_q=x_q^\top\hat w_{\mathrm{OLS}}$.
+
+\section{Ridge regression}
+With penalty $\frac\lambda2\|w\|^2$,
+\[
+L_\lambda(w)=\frac12\|Xw-y\|^2+\frac\lambda2\|w\|^2,
+\]
+and the stationary condition gives
+\[
+(X^\top X+\lambda I)w=X^\top y,
+\]
+so
+\[
+\boxed{\hat w_{\mathrm{ridge}}=(X^\top X+\lambda I)^{-1}X^\top y.}
+\]
+
+\section{Gradient descent toward OLS}
+A GD step is
+\[
+w^{(t+1)}=w^{(t)}-\eta X^\top(Xw^{(t)}-y).
+\]
+If $0<\eta<2/\lambda_{\max}(X^\top X)$ and the solution is identifiable, the iterates converge to the least-squares solution from appropriate initialization.
+
+\section{Why linear regression is useful}
+The task is simple enough that the reference algorithms are explicit, but rich enough to distinguish nearest-neighbor heuristics, one-step GD, multi-step GD, ridge regression, and Bayesian posterior prediction.
+
+\begin{presentbox}
+Linear regression provides a controlled environment where ``the Transformer behaves like algorithm A'' can be tested against an exact numerical target rather than by qualitative analogy.
+\end{presentbox}
+
+\chapter{von Oswald et al.: attention can implement a GD step}
+\section{Reference update}
+For examples $(x_i,y_i)$ and a current linear predictor $W$, one gradient step on squared error is
+\[
+W^+=W-\frac\eta N\sum_{i=1}^N(Wx_i-y_i)x_i^\top.
+\]
+On a query $x_q$,
+\begin{align*}
+W^+x_q
+&=Wx_q-\frac\eta N\sum_i(Wx_i-y_i)(x_i^\top x_q).
+\end{align*}
+The update is a weighted sum of training residuals, with weights given by inner products with the query.
+
+\section{Linear self-attention has the same algebra}
+A linear-attention head computes a term of the form
+\[
+PVK^\top q=P\sum_i v_i(k_i^\top q).
+\]
+Choose keys to contain $x_i$, the query to contain $x_q$, and values to contain the residual-like quantity $Wx_i-y_i$.  With a suitable output projection $P$, the head can produce
+\[
+-\frac\eta N\sum_i(Wx_i-y_i)(x_i^\top x_q),
+\]
+which is exactly the correction term in $W^+x_q$.
+
+\section{Data updates versus parameter updates}
+The Transformer does not literally overwrite a persistent matrix $W$ in its external parameters.  Instead, the activations carry sufficient statistics so that the next-token prediction is the same as if $W$ had been updated.  This is a functional equivalence, not a claim that the model parameter tensor changes during ICL.
+
+\begin{warningbox}
+The clean exact construction uses linearized/linear attention and specially structured representations.  It is an existence result.  It does not by itself prove that a standard softmax Transformer trained by SGD discovers exactly this circuit.
+\end{warningbox}
+
+\begin{presentbox}
+The key algebraic match is simple: GD on linear regression is a sum of residuals times query--example inner products, and a linear-attention head computes exactly a sum of values weighted by query--key inner products.
+\end{presentbox}
+
+\chapter{Aky\"urek et al.: which algorithm is implemented?}
+\section{From one step to an implicit learner}
+Aky\"urek et al. ask a stronger question than representability: when Transformers are trained on linear-regression sequences, which classical learning algorithm best matches their predictions?  Candidate algorithms include GD, ridge/least-squares estimators, and recursive estimators.
+
+\section{Recursive least squares}
+Let
+\[
+P_n=(X_n^\top X_n+\lambda I)^{-1}.
+\]
+Adding one example $x_n$ updates the inverse by Sherman--Morrison:
+\[
+P_n
+=P_{n-1}
+-\frac{P_{n-1}x_nx_n^\top P_{n-1}}
+{1+x_n^\top P_{n-1}x_n}.
+\]
+Define
+\[
+k_n=\frac{P_{n-1}x_n}{1+x_n^\top P_{n-1}x_n}.
+\]
+Then the ridge/recursive estimate can be written
+\[
+\boxed{w_n=w_{n-1}+k_n(y_n-x_n^\top w_{n-1}).}
+\]
+This resembles an adaptive gradient step whose preconditioner depends on the accumulated data geometry.
+
+\section{Depth and algorithmic complexity}
+A deeper Transformer can compose multiple elementary update-like operations.  Thus architectural depth can correspond to the number or sophistication of inner learning steps, although the exact correspondence depends on the construction and training regime.
+
+\begin{presentbox}
+The important shift is from ``attention resembles gradient descent'' to ``the model can represent a family of classical estimators and may interpolate between them depending on training conditions.''
+\end{presentbox}
+
+\chapter{Bayesian linear regression}
+\section{Prior and likelihood}
+Assume
+\[
+w\sim\mathcal N(0,\tau^2I),
+\qquad
+y\mid X,w\sim\mathcal N(Xw,\sigma^2I).
+\]
+The log posterior, up to a constant, is
+\[
+-\frac1{2\sigma^2}\|y-Xw\|^2-\frac1{2\tau^2}\|w\|^2.
+\]
+Collect quadratic terms:
+\[
+-\frac12 w^\top\left(\sigma^{-2}X^\top X+\tau^{-2}I\right)w
++\sigma^{-2}w^\top X^\top y.
+\]
+Therefore the posterior is Gaussian with
+\[
+\boxed{\Sigma
+=\left(\sigma^{-2}X^\top X+\tau^{-2}I\right)^{-1}}
+\]
+and
+\[
+\boxed{\mu=\Sigma\sigma^{-2}X^\top y.}
+\]
+
+\section{Connection to ridge regression}
+Multiply the posterior-mean expression by $\sigma^2$ inside the inverse:
+\[
+\mu
+=\left(X^\top X+\frac{\sigma^2}{\tau^2}I\right)^{-1}X^\top y.
+\]
+Thus the posterior mean equals ridge regression with
+\[
+\lambda=\frac{\sigma^2}{\tau^2}.
+\]
+Optimization and Bayesian inference can therefore make identical point predictions under this Gaussian model while assigning different interpretations to the same formula.
+
+\section{Posterior predictive}
+For a new $x_q$,
+\[
+y_q\mid x_q,D
+\sim\mathcal N\left(x_q^\top\mu,
+\sigma^2+x_q^\top\Sigma x_q\right).
+\]
+The mean is the ridge predictor; the variance expresses uncertainty that a pure point-estimation view does not encode.
+
+\begin{presentbox}
+In Gaussian linear regression, ``Bayesian ICL'' and ``regularized optimization'' can coincide exactly at the level of the posterior mean.  The distinction appears in the assumed generative model and in uncertainty, not necessarily in the point prediction.
+\end{presentbox}
+
+\chapter{Xie et al.: ICL as latent-concept inference}
+\section{Pretraining distribution with a latent task}
+Let $\theta$ index a latent concept or task.  A pretraining sequence is generated by
+\[
+p_{\mathrm{pre}}(o_{1:T})
+=\int p(o_{1:T}\mid\theta)p(\theta)\,d\theta.
+\]
+Observing a prompt changes the posterior
+\[
+p(\theta\mid o_{1:t})
+\propto p(o_{1:t}\mid\theta)p(\theta).
+\]
+Prediction marginalizes over the latent task:
+\[
+p(o_{t+1}\mid o_{1:t})
+=\int p(o_{t+1}\mid o_{1:t},\theta)
+ p(\theta\mid o_{1:t})\,d\theta.
+\]
+
+\section{Why demonstrations change behavior without weight updates}
+The prompt supplies evidence about $\theta$.  The network can therefore adapt predictions by updating an implicit posterior in activation space while leaving its global parameters fixed.
+
+\section{A simple posterior-concentration derivation}
+For a finite latent set $\Theta$ and i.i.d. observations from the true $\theta_\star$,
+\[
+\frac{p(\theta\mid D_n)}{p(\theta_\star\mid D_n)}
+=\frac{p(\theta)}{p(\theta_\star)}
+\prod_{i=1}^n
+\frac{p(o_i\mid\theta)}{p(o_i\mid\theta_\star)}.
+\]
+Taking logarithms and dividing by $n$,
+\[
+\frac1n\log\frac{p(\theta\mid D_n)}{p(\theta_\star\mid D_n)}
+=\frac1n\log\frac{p(\theta)}{p(\theta_\star)}
++\frac1n\sum_i\log\frac{p(o_i\mid\theta)}{p(o_i\mid\theta_\star)}.
+\]
+By the law of large numbers, the second term converges to
+\[
+-D_{\mathrm{KL}}(p_{\theta_\star}\|p_\theta),
+\]
+so incorrect identifiable concepts lose posterior mass exponentially.
+
+\begin{warningbox}
+This i.i.d. derivation is pedagogical.  Xie et al. analyze structured sequence models such as latent concepts in HMM-like settings; the exact theorem assumptions are richer than the toy calculation above.
+\end{warningbox}
+
+\begin{presentbox}
+The Bayesian account says that the prompt is evidence about which task generated the sequence.  ICL is then posterior adaptation in latent-task space rather than explicit parameter optimization.
+\end{presentbox}
+
+\chapter{Meta-learning unifies the views}
+\section{Outer loop and inner loop}
+Let $\tau$ denote a task sampled from a task distribution.  The outer loop optimizes shared parameters
+\[
+\Theta^*=\argmin_\Theta\E_{\tau}\bigl[\mathcal L_\tau(F_\Theta(D_\tau))\bigr].
+\]
+At test time, the inner adaptation is performed by the forward computation
+\[
+D_\tau\mapsto F_{\Theta^*}(D_\tau,\cdot),
+\]
+without an explicit gradient update to $\Theta^*$.
+
+\section{Amortized inference}
+If solving each task separately would require an optimization or Bayesian inference procedure $A(D)$, meta-training can learn a network that approximates
+\[
+F_\Theta(D)\approx A(D).
+\]
+The expensive per-task computation has been amortized into shared parameters and a fixed number of forward operations.
+
+\section{Three views can be simultaneously true}
+Suppose the task prior is Gaussian linear regression.  The posterior mean equals ridge regression.  A meta-trained Transformer can learn to compute that ridge estimator from demonstrations.  Then the same forward pass is simultaneously:
+\begin{itemize}
+\item a learned meta-algorithm;
+\item an optimizer-equivalent computation;
+\item a Bayesian posterior-mean computation.
+\end{itemize}
+
+\begin{presentbox}
+Meta-learning is the outer explanatory layer: it tells us why a fixed network might acquire an inner algorithm.  Optimization and Bayesian theories characterize what that inner algorithm computes under particular task distributions.
+\end{presentbox}
+
+\chapter{What is theorem and what is interpretation?}
+\section{Can implement versus does implement}
+A constructive theorem of the form
+\[
+\exists\Theta:\quad F_\Theta(D,x)=A(D,x)
+\]
+shows representability.  It does not prove
+\[
+\Theta_{\mathrm{SGD}}\approx\Theta
+\]
+for ordinary training.  Empirical matching, mechanistic analysis, or an optimization theorem is needed for that stronger claim.
+
+\section{Linear attention versus softmax attention}
+Exact algebraic GD constructions often use linear or specially parameterized attention.  Standard LLMs use softmax attention with normalization, residual pathways, layer normalization, and many nonlinear blocks.  A construction may still illuminate their behavior, but exact equivalence should not be claimed without a theorem covering that architecture.
+
+\section{From toy regression to natural-language ICL}
+Natural-language prompts add latent semantics, discrete tokenization, ambiguous task definitions, distribution shift, and long-range dependencies.  The controlled linear-regression theory isolates mechanisms; it does not by itself establish a complete theory of instruction following.
+
+\begin{presentbox}
+The safest claim is mechanism-specific: ``this architecture can implement this learning algorithm under these assumptions,'' or ``trained predictions closely match this estimator on this task family.''  Avoid upgrading either statement into a universal claim about all LLM ICL.
+\end{presentbox}
+
+\chapter{Presentation checklist}
+\section{Twelve formulas to keep}
+\begin{align*}
+&\hat w_{\mathrm{OLS}}=(X^\top X)^{-1}X^\top y,\\
+&\hat w_{\mathrm{ridge}}=(X^\top X+\lambda I)^{-1}X^\top y,\\
+&w^+=w-\eta X^\top(Xw-y),\\
+&W^+x_q=Wx_q-\frac\eta N\sum_i(Wx_i-y_i)(x_i^\top x_q),\\
+&PVK^\top q=P\sum_i v_i(k_i^\top q),\\
+&k_n=\frac{P_{n-1}x_n}{1+x_n^\top P_{n-1}x_n},\\
+&w_n=w_{n-1}+k_n(y_n-x_n^\top w_{n-1}),\\
+&\Sigma=(\sigma^{-2}X^\top X+\tau^{-2}I)^{-1},\\
+&\mu=\Sigma\sigma^{-2}X^\top y,\\
+&\lambda=\sigma^2/\tau^2,\\
+&p(\theta\mid D)\propto p(D\mid\theta)p(\theta),\\
+&F_\Theta(D)\approx A(D).
+\end{align*}
+
+\section{Common mistakes}
+\begin{itemize}
+\item Confusing activation-space adaptation with an actual update of model weights.
+\item Treating a linear-attention construction as an exact theorem for every softmax LLM.
+\item Calling posterior mean and full Bayesian prediction the same object.
+\item Inferring the trained mechanism from representability alone.
+\item Assuming one toy task identifies a universal ICL algorithm.
+\end{itemize}
+
+\begin{presentbox}
+Thirty-second conclusion: ICL can be formalized as an inner learning algorithm executed by a fixed network.  In controlled settings, attention can implement GD-like updates, trained Transformers can resemble classical estimators, and Bayesian posterior inference gives an alternative but sometimes algebraically identical description.
+\end{presentbox}
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\begin{itemize}
+\item Garg, S. et al. \emph{What Can Transformers Learn In-Context? A Case Study of Simple Function Classes}. NeurIPS, 2022.
+\item von Oswald, J. et al. \emph{Transformers Learn In-Context by Gradient Descent}. ICML, 2023.
+\item Aky\"urek, E. et al. \emph{What Learning Algorithm Is In-Context Learning? Investigations with Linear Models}. ICLR, 2023.
+\item Xie, S. et al. \emph{An Explanation of In-Context Learning as Implicit Bayesian Inference}. ICLR, 2022.
+\end{itemize}
+\end{document}

@@ -1,0 +1,477 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar -- English Study Notes
+% Compile with:
+%   xelatex FILENAME.tex
+%   xelatex FILENAME.tex
+% or: latexmk -xelatex FILENAME.tex
+% =====================================================================
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[unicode,bookmarks=false]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\hypersetup{colorlinks=true,linkcolor=NoteBlue,citecolor=NoteBlue,urlcolor=NoteBlue}
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{}{\footnotesize Chain-of-Thought \& Reasoning Complexity}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+\makechapterstyle{seminarnotes}{
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\grad}{\nabla}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Tr}{Tr}
+\tcbset{seminarbox/.style={enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,fonttitle=\bfseries\small,coltitle=black,attach title to upper={\quad}}}
+\newtcolorbox{keybox}[1][]{seminarbox,colback=NoteBlueLight,borderline west={1.8pt}{0pt}{NoteBlue},title={Key point#1}}
+\newtcolorbox{paperbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={From the original paper#1}}
+\newtcolorbox{suppbox}[1][]{seminarbox,colback=NoteWarmLight,borderline west={1.8pt}{0pt}{NoteWarm},title={Supplementary derivation#1}}
+\newtcolorbox{warningbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={Caution#1}}
+\newtcolorbox{presentbox}{seminarbox,colback=white,borderline west={2.2pt}{0pt}{black!70},fontupper=\footnotesize,top=1.2mm,bottom=1.2mm,before={\par},before skip=0.5em,after skip=0.5em,title={How to say it in the presentation}}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\begin{document}
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 7\par}
+\vspace{1.4cm}
+{\HUGE\bfseries Chain-of-Thought and\\[0.18em]Reasoning Complexity\par}
+\vspace{0.55cm}
+{\large English seminar study notes\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+\begin{minipage}{0.86\textwidth}
+\small
+These notes are an English companion to the seminar handout.  The emphasis is on
+mathematical derivations that can be followed line by line, on separating theorem
+statements from interpretation, and on identifying the assumptions under which each
+claim is valid.
+\end{minipage}
+\vfill
+{\small\textbf{Primary readings}\\[0.25em]
+Merrill and Sabharwal, work on CoT computational expressivity.\\Bai et al., \textbf{Transformers as Statisticians}.\\Wu et al., \textbf{In-Context Deep Learning via Transformer Models}.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+\tableofcontents*
+\clearpage
+
+\chapter{Notation and four theoretical axes}
+\section{Chain of Thought as an iterated computation}
+Let a fixed decoder implement a next-step map $f$.  Given input $x$, a reasoning trace of length $T$ is
+\[
+z_1=f(x),\qquad
+z_2=f(x,z_1),\qquad\ldots\qquad
+z_T=f(x,z_{1:T-1}).
+\]
+The final answer may be a function of the transcript $z_{1:T}$.  This notation makes explicit that the same network is reused repeatedly.
+
+\section{Four questions that should be kept distinct}
+\begin{enumerate}
+\item \textbf{Computational depth:} what does autoregressive reasoning add beyond one forward pass?
+\item \textbf{ICL $\leftrightarrow$ optimization:} can one forward pass itself contain a learning/optimization loop?
+\item \textbf{Learning signal:} how does observing intermediate traces change sample complexity?
+\item \textbf{Token lower bounds:} how many inference-time reasoning tokens are necessary for some tasks?
+\end{enumerate}
+The first two concern computation; the third concerns statistical supervision; the fourth concerns an inference resource.
+
+\begin{presentbox}
+This week is easiest to understand if ``reasoning tokens'' are treated as one resource among several.  Network depth can simulate an optimizer inside one pass, while autoregressive decoding adds another sequential resource outside the pass.
+\end{presentbox}
+
+\chapter{CoT as a sequential computational resource}
+\section{One forward pass versus repeated decoding}
+A fixed-depth Transformer forward pass performs a bounded number of parallel transformation rounds.  Autoregressive CoT feeds the output back as input, so $T$ generated tokens create $T$ additional sequential rounds.  It is useful to distinguish
+\[
+D_{\mathrm{inner}}=\text{architectural depth inside one forward pass}
+\]
+from
+\[
+T_{\mathrm{decode}}=\text{number of autoregressive reasoning steps}.
+\]
+
+\section{A computational sandwich}
+Under the formal decoder model used in CoT expressivity theory, one obtains relations of the schematic form
+\[
+\boxed{\mathrm{TIME}(t(n))\subseteq\mathrm{CoT}(t(n))}
+\]
+and an upper simulation by limited workspace such as
+\[
+\boxed{\mathrm{CoT}(t(n))\subseteq\mathrm{SPACE}(t(n)+\log n)}
+\]
+with the exact encoding and precision assumptions supplied by the theorem.  The left inclusion interprets one reasoning token as one simulated algorithmic step; the right stores the transcript and recomputes bounded-depth forward passes.
+
+\section{DFA simulation}
+For a DFA transition $q_i=\delta(q_{i-1},x_i)$, a linear-length scratchpad can simply emit $q_i$ after reading each symbol.  CoT therefore externalizes the recurrent state that a fixed one-pass computation may not have enough sequential depth to maintain.
+
+\section{Do not simplify this to ``CoT = P''}
+A complexity characterization depends on time bounds, numerical precision, uniformity, and the exact Transformer abstraction.  Expressivity also does not imply that SGD learns the simulation or that the generated trace is human-interpretable.
+
+\begin{presentbox}
+CoT adds sequential time by repeatedly reusing the same network.  That is different from making a single forward pass deeper, and different again from giving intermediate labels during training.
+\end{presentbox}
+
+\chapter{An optimization loop inside ICL: from attention to backprop}
+\section{One linear-attention layer can implement one GD step}
+Consider linear regression with current weight matrix $W$ and examples $(x_i,y_i)_{i=1}^N$.  One MSE gradient step is
+\[
+\Delta W=-\frac\eta N\sum_{i=1}^N(Wx_i-y_i)x_i^\top,
+\qquad W^+=W+\Delta W.
+\]
+For a query $x_j$,
+\[
+\Delta W x_j
+=-\frac\eta N\sum_i(Wx_i-y_i)(x_i^\top x_j).
+\]
+A linear-attention head computes
+\[
+PVK^\top q=P\sum_i v_i(k_i^\top q).
+\]
+Choose block-structured token embeddings and projections so that
+\[
+k_i^\top q_j=x_i^\top x_j,
+\qquad
+v_i=\begin{bmatrix}0\\Wx_i-y_i\end{bmatrix}.
+\]
+With the output projection scaled by $\eta/N$, the update to the prediction slot is
+\[
+\frac\eta N\sum_i(Wx_i-y_i)(x_i^\top x_j)=-\Delta W x_j.
+\]
+Hence the post-attention token can encode the prediction of the GD-updated predictor.
+
+\begin{paperbox}
+The exact von Oswald construction is for one-head linear self-attention with a particular regression tokenization.  It is an explicit representability result.  Their experiments additionally show settings where meta-training finds behavior close to the construction, but the theorem itself does not state that ordinary softmax LLM training must do so.
+\end{paperbox}
+
+\section{Aky\"urek et al.: the same family of ideas}
+Aky\"urek et al. construct Transformer primitives that implement gradient-style updates and regression estimators using a constant number of layers and $O(d)$ hidden state per update in controlled linear-model settings.  Stacking the primitive implements multiple inner updates.  The shared message is
+\[
+\text{context}\longmapsto\text{task-specific optimizer state in activations}.
+\]
+
+\section{Bai et al.: multi-step GD and in-context algorithm selection}
+Let
+\[
+\widehat L_N(w)=\frac1N\sum_{i=1}^N\ell(w^\top x_i,y_i)
+\]
+be a smooth convex empirical risk and
+\[
+w^{t+1}=w^t-\eta\nabla\widehat L_N(w^t).
+\]
+Bai et al. construct an attention-only Transformer in which one layer approximates one in-context GD iterate; an $(L+1)$-layer model can therefore implement $L$ such iterates with controlled accumulated error under their assumptions.
+
+They also move from a single base algorithm to \emph{algorithm selection}.  A post-ICL validation scheme has the conceptual form
+\[
+\widehat k
+=\argmin_{k\in[K]}
+\widehat R_{\mathrm{val}}\bigl(A_k(D_{\mathrm{train}})\bigr),
+\]
+while a pre-ICL routing scheme first computes a context statistic and sets
+\[
+\widehat k=g(s(D)).
+\]
+Thus the Transformer can be constructed not only to run an inner algorithm but to select which algorithm to run from context.
+
+\begin{warningbox}
+The central Bai constructions use a normalized ReLU-attention primitive rather than ordinary softmax attention.  The precise claim is therefore architectural and constructive, not ``every standard Transformer performs gradient descent.''
+\end{warningbox}
+
+\section{Wu et al.: simulating deep-network backpropagation}
+The next step is much stronger.  Let $w$ denote the parameters of an $N$-layer target network and $L_n(w)$ its empirical risk.  The inner optimizer is
+\[
+w^{(\ell+1)}
+=\operatorname{Proj}_{\mathcal W}
+\left(w^{(\ell)}-\eta\nabla L_n(w^{(\ell)})\right).
+\]
+Computing one update requires a forward sweep through the target network, a reverse-mode chain-rule sweep, aggregation of sample gradients, and an update/projection.  Wu et al. unfold these operations across Transformer depth.
+
+The quantitative theorem has the form
+\[
+\boxed{
+\text{$L$ GD steps on an $N$-layer network}
+\quad\Longleftarrow\quad
+(2N+4)L\text{-layer Transformer}.}
+\]
+Each simulated step is an inexact update
+\[
+\widehat w^{(\ell)}
+=\operatorname{Proj}_{\mathcal W}
+\left(
+\widehat w^{(\ell-1)}-
+\eta\nabla L_n(\widehat w^{(\ell-1)})
++\varepsilon^{(\ell-1)}
+\right),
+\qquad
+\|\varepsilon^{(\ell-1)}\|_2\le\eta\epsilon.
+\]
+The primary construction uses ReLU-style attention and the paper separately studies softmax extensions.
+
+\begin{warningbox}
+The result with the $(2N+4)L$ depth appears in Wu et al., arXiv:2411.16549, currently titled \emph{In-Context Deep Learning via Transformer Models}.  The formal theorem includes smoothness assumptions on the target activation and its derivative; it should not be read as an unconditional exact theorem for nonsmooth ReLU networks.
+\end{warningbox}
+
+\section{The important axes are not encoder versus decoder}
+A more informative comparison is
+\[
+\text{linear/ReLU-style attention}
+\quad\leftrightarrow\quad
+\text{softmax attention}
+\]
+and
+\[
+\text{one shallow estimator update}
+\quad\leftrightarrow\quad
+\text{a full deep forward/backward simulation}.
+\]
+Encoder/decoder masking changes information routing, but the central theoretical question is which optimizer circuit can be embedded into the forward computation.
+
+\section{Connection to Chapter 2 and to faithfulness}
+The CoT results in Chapter 2 obtain serial computation by chaining many forward passes.  The ICL--backprop results instead spend architectural depth within one forward pass.  Both resources may be used together.
+
+There are also three different strengths of claim:
+\begin{enumerate}
+\item \textbf{Representability:} parameters exist that compute the same function as the optimizer.
+\item \textbf{Learnability of the circuit:} outer-loop SGD actually finds such a circuit.
+\item \textbf{Mechanistic faithfulness:} on a natural task, the model causally uses that optimizer-like mechanism.
+\end{enumerate}
+The construction theorems prove the first most directly.  Evidence for the second or third requires additional arguments.
+
+\begin{presentbox}
+The ICL--backprop axis runs from ``one linear-attention layer exactly implements one regression GD step'' to ``a $(2N+4)L$-layer Transformer simulates $L$ backpropagation steps of an $N$-layer target network.''  The forward pass can therefore contain a small training loop.  The essential caveat is that existence of such a circuit is not a proof that SGD always discovers it in real LLMs.
+\end{presentbox}
+
+\chapter{Learning autoregressive CoT: sample complexity}
+\section{End-to-end versus CoT supervision}
+Let $\mathcal F$ be a base next-token class.  Repeated application for $T$ steps defines an end-to-end class $\mathcal F^{\mathrm{e2e},T}$.  With only final-answer supervision, Joshi et al. obtain bounds of the schematic form
+\[
+\mathrm{VCdim}(\mathcal F^{\mathrm{e2e},T})
+\le 6T\,\mathrm{VCdim}(\mathcal F)
+\]
+in a binary setting, which leads to realizable PAC sample complexity roughly
+\[
+m_{\mathrm{e2e}}
+=O\!\left(
+\frac{T\,\mathrm{VCdim}(\mathcal F)\log(1/\epsilon)+\log(1/\delta)}{\epsilon}
+\right).
+\]
+They also construct classes for which linear dependence on $T$ is genuinely necessary up to constants/log factors.
+
+With CoT supervision, one trajectory exposes the $T$ transition constraints
+\[
+f_\star(x)=z_1,\quad
+f_\star(xz_1)=z_2,\quad\ldots,\quad
+f_\star(xz_{1:T-1})=z_T.
+\]
+This richer supervision reduces the dependence to a logarithmic form in their general VC analysis.
+
+\section{Hanneke--Mehalel--Moran: removing $T$ from sample count}
+A later result asks whether even the residual $\log T$ dependence is necessary.  For finite-VC base classes, an appropriate learner can achieve a CoT sample bound of the representative form
+\[
+\boxed{
+m^{\mathrm{CoT},T}_{\mathcal F}(\epsilon,\delta)
+\le c(\mathcal F)
+\left(
+\frac1\epsilon\log\frac1\epsilon+
+\log\frac1\delta
+\right),}
+\]
+where $c(\mathcal F)$ is independent of generation length $T$.
+
+\begin{keybox}
+A $T$-independent number of \emph{training trajectories} does not make long traces computationally free.  Sample count, token count, and training FLOPs are different resources.
+\end{keybox}
+
+\begin{presentbox}
+Intermediate supervision can make a long computation statistically easier to identify because one trajectory reveals many applications of the same transition rule.  This is a statement about independent examples, not about the cost of processing the trace.
+\end{presentbox}
+
+\chapter{How informative is the intermediate trace?}
+\section{CoT information}
+For two hypotheses $h_1,h_2$, let $p_{\mathrm{agree}}$ be the probability that they agree both on the CoT trace and the final answer.  Define
+\[
+I_D^{\mathrm{CoT}}(h_1,h_2)=-\log p_{\mathrm{agree}}.
+\]
+Relative to a target $h_\star$, define the worst discrimination rate among hypotheses with end-to-end error at least $\epsilon$:
+\[
+I_{D,h_\star}^{\mathrm{CoT}}(\epsilon;\mathcal H)
+=\inf_{R^{\mathrm{e2e}}(h)\ge\epsilon}
+I_D^{\mathrm{CoT}}(h,h_\star).
+\]
+For a finite class, a union bound gives the characteristic sample scale
+\[
+\boxed{
+m\gtrsim
+\frac{\log|\mathcal H|+\log(1/\delta)}
+{I_{D,h_\star}^{\mathrm{CoT}}(\epsilon;\mathcal H)}.}
+\]
+Larger CoT information means incorrect hypotheses are exposed more quickly by intermediate traces.
+
+\begin{warningbox}
+CoT information measures statistical distinguishability.  It is not a measure of readability, factuality, or causal faithfulness of an explanation.
+\end{warningbox}
+
+\begin{presentbox}
+A useful intermediate trace is one that eliminates wrong hypotheses quickly.  That statistical usefulness should not be confused with the trace being an honest verbal report of the model's internal causal computation.
+\end{presentbox}
+
+\chapter{Reasoning-token lower bounds: BAPO}
+\section{Why a separate lower bound is needed}
+Sample-complexity theorems count training examples.  BAPO-style results instead ask how many reasoning tokens a trained system needs at inference time when each step has bounded information access/bandwidth.
+
+\section{Representative lower bounds}
+In constant-bandwidth BAPO abstractions, representative tasks exhibit lower bounds such as
+\[
+\mathrm{Majority}:\ \Omega(n),
+\qquad
+\mathrm{Match3}:\ \Omega(n),
+\]
+and graph reachability can require a number of rounds linear in the relevant edge-count parameter.
+
+The proof pattern is a fooling-pair argument: construct inputs $x,x'$ with different answers but arranged so that, if the reasoning budget $R$ is too small, every bounded-information reasoning step has the same observable state on both inputs.  Inductively,
+\[
+z_t(x)=z_t(x')\qquad(t\le R),
+\]
+forcing an incorrect identical final answer.
+
+\begin{warningbox}
+A BAPO lower bound is a theorem for a bounded-information-flow abstraction, not a universal lower bound for every real GPT-style architecture.
+\end{warningbox}
+
+\section{Why this does not contradict sample-complexity gains}
+The two quantities are different:
+\[
+\underbrace{m}_{\text{training trajectories}}
+\qquad\text{versus}\qquad
+\underbrace{R}_{\text{inference reasoning tokens}}.
+\]
+A rule may be identifiable from few supervised trajectories and still require many communication rounds to execute on a new instance.
+
+\begin{presentbox}
+Not all long reasoning is useless verbosity.  Under bounded information flow, some problems provably require many reasoning rounds.  Learning the rule with few examples and executing the rule with few tokens are separate theoretical questions.
+\end{presentbox}
+
+\chapter{Reasoning length, error accumulation, and faithfulness}
+\section{More tokens are not automatically better}
+A lower bound says that some minimum reasoning length may be necessary.  It does not say that arbitrarily extending a trace improves performance.  If each local step has error probability $p$ and errors were independent, a toy success model would give
+\[
+P(\text{all }T\text{ steps correct})=(1-p)^T,
+\]
+which decreases with $T$.  Real errors are dependent, but the toy model illustrates why unnecessary steps can create more failure opportunities.
+
+\section{Faithfulness is an orthogonal axis}
+A trace can be computationally useful or statistically informative without faithfully describing the hidden mechanism.  In particular:
+\begin{itemize}
+\item an optimizer-equivalent circuit can exist without producing a verbal explanation of that circuit;
+\item a CoT trace can discriminate hypotheses without being causally necessary for the final answer;
+\item a model can generate plausible reasoning after the decisive internal computation has already occurred.
+\end{itemize}
+Mechanistic faithfulness requires causal tests, interventions, or architecture-specific analysis beyond the expressivity/sample-complexity theorems.
+
+\begin{presentbox}
+``The model learns in context'' can mean at least three things: an optimizer-equivalent function is representable, training actually finds that circuit, or the natural-language trace faithfully reports the circuit.  Only the first follows directly from the strongest construction theorems discussed here.
+\end{presentbox}
+
+\chapter{Putting the four axes in one table}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.23\textwidth}XXX}
+\toprule
+Axis & Main resource & Typical result & What it does not imply\\
+\midrule
+CoT computational depth & decoding steps $T$ & $\mathrm{TIME}(t)\subseteq\mathrm{CoT}(t)$ under assumptions & faithful explanation\\
+ICL $\leftrightarrow$ optimization & layer depth / attention primitive & 1-step GD to $(2N+4)L$ backprop simulation & SGD discovers the circuit\\
+CoT supervision & trajectories $m$ & reduced or removed $T$ dependence in sample count & cheap inference\\
+Token lower bounds & reasoning budget $R$ & linear lower bounds for BAPO-hard tasks & universal LLM lower bound\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Five formulas worth keeping}
+\begin{align*}
+&\mathrm{TIME}(t(n))\subseteq\mathrm{CoT}(t(n)),\\
+&\Delta W=-\frac\eta N\sum_i(Wx_i-y_i)x_i^\top,\\
+&\text{$L$ GD steps on $N$-layer net}\Longleftarrow(2N+4)L\text{ Transformer layers},\\
+&m^{\mathrm{CoT},T}_{\mathcal F}(\epsilon,\delta)\ \text{can be independent of }T,\\
+&R_{\mathrm{reason}}=\Omega(n)\quad\text{for representative BAPO-hard tasks}.
+\end{align*}
+
+\section{Common mistakes}
+\begin{itemize}
+\item Treating an existence construction as a theorem about what outer-loop SGD learns.
+\item Treating encoder versus decoder as the main distinction while ignoring the attention primitive and depth of the simulated optimizer.
+\item Confusing training sample complexity with inference token complexity.
+\item Equating informative intermediate supervision with causal faithfulness.
+\item Applying a lower bound proved for BAPO directly to all practical LLMs.
+\end{itemize}
+
+\begin{presentbox}
+Thirty-second conclusion: CoT can add sequential computation, while a single forward pass can itself contain an optimizer ranging from one GD step to a simulated deep backprop loop.  Intermediate supervision can reduce the number of training trajectories needed, yet some bounded-information models still require many inference tokens.  These are four different resources and four different theorem families.
+\end{presentbox}
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\begin{itemize}
+\item Merrill, W. and Sabharwal, A. \emph{The Expressive Power of Transformers with Chain of Thought}. 2024.
+\item von Oswald, J. et al. \emph{Transformers Learn In-Context by Gradient Descent}. arXiv:2212.07677.
+\item Aky\"urek, E. et al. \emph{What Learning Algorithm Is In-Context Learning? Investigations with Linear Models}. arXiv:2211.15661.
+\item Bai, Y., Chen, F., Wang, H., Xiong, C., and Mei, S. \emph{Transformers as Statisticians: Provable In-Context Learning with In-Context Algorithm Selection}. arXiv:2306.04637.
+\item Wu, W. et al. \emph{In-Context Deep Learning via Transformer Models}. arXiv:2411.16549.
+\item Joshi, N. et al. \emph{On the Sample Complexity of Learning with Chain-of-Thought}. 2025.
+\item Hanneke, S., Mehalel, I., and Moran, S. Work on CoT supervision and $T$-independent sample complexity, 2026.
+\item Altabaa, A., Montasser, O., and Lafferty, J. \emph{CoT Information: Improved Sample Complexity under Chain-of-Thought Supervision}. NeurIPS, 2025.
+\item Tomlinson, A. et al. \emph{Reasoning about Reasoning: BAPO Bounds on Chain-of-Thought Token Complexity in LLMs}. 2026.
+\end{itemize}
+\end{document}

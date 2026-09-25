@@ -1,0 +1,398 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar Week 3: NTK, Lazy Training & Feature Learning
+% Compile:
+%   xelatex ntk_lazy_feature_learning_notes.tex
+%   xelatex ntk_lazy_feature_learning_notes.tex
+% or: latexmk -xelatex ntk_lazy_feature_learning_notes.tex
+% Korean typesetting: kotex + XeLaTeX.
+% =====================================================================
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+\usepackage{kotex}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[unicode,bookmarks=false]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\hypersetup{colorlinks=true,linkcolor=NoteBlue,citecolor=NoteBlue,urlcolor=NoteBlue,pdftitle={NTK, Lazy Training and Feature Learning},pdfauthor={LLM Theory Seminar}}
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{}{\footnotesize NTK, Lazy Training \& Feature Learning}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+\makechapterstyle{seminarnotes}{
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\grad}{\nabla}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Tr}{Tr}
+\tcbset{seminarbox/.style={enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,fonttitle=\bfseries\small,coltitle=black,attach title to upper={\quad}}}
+\newtcolorbox{keybox}[1][]{seminarbox,colback=NoteBlueLight,borderline west={1.8pt}{0pt}{NoteBlue},title={핵심#1}}
+\newtcolorbox{paperbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={원 논문 기준#1}}
+\newtcolorbox{suppbox}[1][]{seminarbox,colback=NoteWarmLight,borderline west={1.8pt}{0pt}{NoteWarm},title={보충 유도 --- 논문 밖의 독자용 전개#1}}
+\newtcolorbox{warningbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={주의#1}}
+\newtcolorbox{presentbox}{seminarbox,colback=white,borderline west={2.2pt}{0pt}{black!70},fontupper=\footnotesize,top=1.2mm,bottom=1.2mm,before={\par},before skip=0.5em,after skip=0.5em,title={발표에서 이렇게 말하기}}
+\theoremstyle{definition}
+\newtheorem{definition}{정의}[chapter]
+\newtheorem{proposition}{명제}[chapter]
+\newtheorem{theorem}{정리}[chapter]
+\begin{document}
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 3\par}
+\vspace{1.4cm}
+{\HUGE\bfseries Neural Tangent Kernel, Lazy Training,\\[0.18em]and Feature Learning\par}
+\vspace{0.55cm}
+{\large 발표 준비용 수학 노트\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+\begin{minipage}{0.86\textwidth}
+\small
+이 노트의 목표는 NTK를 단순한 ``무한폭 커널''로 외우는 것이 아니라, parameter gradient flow에서 function-space dynamics가 어떻게 나오고, 어떤 scaling에서 그 dynamics가 고정 커널로 닫히는지를 수식으로 이해하는 것이다. 마지막에는 같은 infinite-width limit에서도 feature learning이 살아남을 수 있다는 mean-field 및 $\mu$P 관점과 비교한다.
+\end{minipage}
+\vfill
+{\small\textbf{Primary readings}\\[0.25em]
+Jacot, Gabriel, Hongler, \textbf{Neural Tangent Kernel}, NeurIPS 2018.\\
+Lee et al., \textbf{Wide Neural Networks of Any Depth Evolve as Linear Models Under Gradient Descent}, NeurIPS 2019.\\
+Chizat, Oyallon, Bach, \textbf{On Lazy Training in Differentiable Programming}, NeurIPS 2019.\\
+Yang, Hu, \textbf{Tensor Programs IV: Feature Learning in Infinite-Width Neural Networks}, ICML 2021.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+\tableofcontents*
+\clearpage
+
+\chapter{기호와 이번 주의 핵심 질문}
+\section{기호 대응표}
+신경망을 $f_\theta(x)$, 파라미터를 $\theta\in\R^p$, 학습 입력을 $X=(x_1,\ldots,x_n)$라 하자. 학습점에서의 출력 벡터와 Jacobian은
+\[
+f_\theta(X)=\begin{bmatrix}f_\theta(x_1)&\cdots&f_\theta(x_n)\end{bmatrix}^\top,
+\qquad
+J_\theta(X)=\frac{\partial f_\theta(X)}{\partial \theta}
+\]
+이다. empirical neural tangent kernel은
+\[
+K_\theta(X,X)=J_\theta(X)J_\theta(X)^\top
+\]
+이고, square loss에서는 residual을 $r_\theta=f_\theta(X)-y$로 둔다.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.22\textwidth}XXX}
+\toprule
+개념 & Jacot et al. & Lee et al. & Chizat et al.\\
+\midrule
+network & $f_\theta$ & $f(\theta,x)$ & $h(w)$ / scaled model\\
+tangent kernel & $\Theta_\infty$ & $\hat\Theta_t$ & tangent model\\
+linearization & kernel limit에 내재 & Taylor model로 명시 & lazy regime\\
+feature learning & strict NTK limit에서 소멸 & linearization 이탈 & non-lazy regime\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{이번 주의 질문}
+Mean-field theory에서는 폭이 무한대로 가더라도 neuron distribution이 움직이면서 feature learning이 남을 수 있었다. NTK theory는 다른 limit을 묻는다. 폭이 충분히 클 때 학습 경로가 초기점 근처에 머물러, 신경망 전체의 학습이 초기점에서의 1차 Taylor 근사로 설명될 수 있는가?
+
+중요한 점은
+\[
+\text{width }m\to\infty
+\quad\not\Rightarrow\quad
+\text{하나의 유일한 dynamics}
+\]
+라는 것이다. parameterization, output scaling, learning rate, initialization이 함께 kernel-like regime인지 feature-learning regime인지를 결정한다.
+
+\begin{presentbox}
+NTK는 임의로 정의한 similarity measure가 아니다. 파라미터 공간의 gradient flow를 network Jacobian을 통해 함수 공간으로 옮기면 정확히 등장하는 Gram matrix이다.
+\end{presentbox}
+
+\chapter{Parameter gradient flow에서 NTK로}
+\section{Function-space dynamics}
+Square loss를
+\[
+\mathcal L(\theta)=\frac12\|f_\theta(X)-y\|^2=\frac12\|r_\theta\|^2
+\]
+라 하자. parameter gradient flow는
+\[
+\dot\theta_t=-\nabla_\theta\mathcal L(\theta_t)
+\]
+이다. chain rule에 의해
+\[
+\nabla_\theta\mathcal L(\theta_t)=J_t^\top r_t
+\]
+이므로
+\[
+\dot\theta_t=-J_t^\top r_t.
+\]
+이제 prediction을 시간으로 미분하면
+\begin{align*}
+\frac{d}{dt}f_{\theta_t}(X)
+&=J_t\dot\theta_t\\
+&=-J_tJ_t^\top r_t\\
+&=-K_t r_t.
+\end{align*}
+$y$는 고정이므로
+\[
+\boxed{\dot r_t=-K_t r_t.}
+\]
+이 식은 infinite width를 쓰지 않았다. 미분 가능한 모든 신경망에서 parameter gradient flow에 대해 정확한 항등식이다.
+
+\section{Kernel이 고정되어 있다면}
+만약 $K_t\equiv K_0$라면
+\[
+\dot r_t=-K_0r_t
+\]
+이고, 따라서
+\[
+\boxed{r_t=e^{-K_0t}r_0.}
+\]
+$K_0=Q\Lambda Q^\top$라 두면 각 eigenmode는 $e^{-\lambda_i t}$로 감소한다. 즉 kernel spectrum이 optimization의 time scale을 결정한다.
+
+\section{일반 loss}
+일반적인 loss $\ell(f(X),y)$에 대해서는
+\[
+\dot f_t(X)=-K_t\nabla_f\ell(f_t(X),y)
+\]
+이다. NTK는 function space에서 data-dependent preconditioner처럼 작동한다고 볼 수 있다.
+
+\begin{presentbox}
+먼저 유한 폭에서 정확한 식 $\dot f=-K_t\nabla_f\ell$를 유도하고, 그 다음 infinite-width theorem을 소개하는 것이 좋다. 무한폭 정리는 특정 scaling에서 $K_t$가 deterministic kernel로 수렴하고 학습 중 거의 변하지 않는다는 추가 주장이다.
+\end{presentbox}
+
+\chapter{Jacot et al.: infinite-width NTK}
+\section{초기화에서의 kernel limit}
+Fully connected network를 표준적인 독립 초기화로 두면, layerwise covariance가 deterministic recursion으로 수렴한다. 개략적으로
+\[
+\Sigma^{(0)}(x,x')=\frac1d x^\top x'
+\]
+이고, $(u,v)$가 $\Sigma^{(\ell)}$로 정해지는 joint Gaussian이면
+\[
+\Sigma^{(\ell+1)}(x,x')=\E[\sigma(u)\sigma(v)].
+\]
+미분 activation에 대한 covariance는
+\[
+\dot\Sigma^{(\ell+1)}(x,x')=\E[\sigma'(u)\sigma'(v)]
+\]
+이다. 표준 fully connected parameterization에서 limiting NTK는 대략
+\[
+\Theta^{(\ell+1)}
+=\Sigma^{(\ell+1)}+\Theta^{(\ell)}\dot\Sigma^{(\ell+1)}
+\]
+형태의 recursion을 따른다. 정확한 base case와 상수는 parameterization convention에 따라 달라진다.
+
+\section{학습 중 kernel constancy}
+NTK parameterization에서는 충분히 넓은 network가 $O(1)$ training time 동안 파라미터 공간에서 매우 짧은 거리만 이동한다. 정리의 가정 아래에서 폭이 무한대로 가면 finite time interval에서
+\[
+K_t\longrightarrow \Theta_\infty
+\]
+가 성립하고, dynamics는
+\[
+\dot f_t(X)=-\Theta_\infty\nabla_f\ell(f_t(X),y)
+\]
+로 닫힌다. square loss에서는 선형 ODE가 된다.
+
+\begin{warningbox}
+``NTK가 고정된다''는 말은 특정 scaling에서의 infinite-width statement다. finite-width network에서는 일반적으로 $K_t\neq K_0$이며, 오히려 $\|K_t-K_0\|$의 크기가 feature learning을 측정하는 하나의 진단값이 된다.
+\end{warningbox}
+
+\begin{presentbox}
+Jacot et al.의 핵심은 forward map 자체가 선형이라는 것이 아니다. 신경망의 출력 함수는 여전히 비선형이지만, 학습 dynamics가 초기점의 tangent kernel에 의해 거의 선형화된다는 것이다.
+\end{presentbox}
+
+\chapter{Linearization과 kernel regression}
+\section{초기점에서의 1차 Taylor model}
+초기점 $\theta_0$ 주변에서
+\[
+f_{\mathrm{lin}}(x;\theta)
+=f_{\theta_0}(x)+J_0(x)(\theta-\theta_0)
+\]
+로 선형화하자. 이 linear model을 gradient flow로 학습하면 고정 kernel $K_0$를 사용하는 동일한 function-space equation을 얻는다.
+
+\section{Minimum-norm solution}
+Linearized model이 training set을 interpolation한다고 하자. $\Delta\theta=\theta-\theta_0$라 두면
+\[
+J_0\Delta\theta=y-f_0(X)
+\]
+를 풀어야 한다. $\Delta\theta=0$에서 시작한 gradient flow는 최소 Euclidean norm 해
+\[
+\Delta\theta_\star
+=J_0^\top(J_0J_0^\top)^+\bigl(y-f_0(X)\bigr)
+\]
+를 선택한다. test point $x$에서는
+\begin{align*}
+f_\star(x)
+&=f_0(x)+J_0(x)\Delta\theta_\star\\
+&=f_0(x)+K_0(x,X)K_0(X,X)^+\bigl(y-f_0(X)\bigr).
+\end{align*}
+이는 empirical NTK를 사용하는 ridgeless kernel regression predictor와 동일하다.
+
+\section{Lee et al.: wide network는 linearization을 따른다}
+Lee et al.은 이 linearization 관점을 명시적으로 정리한다. 적절한 parameterization, width, learning-rate, time 조건 아래에서 실제 wide network의 출력은 초기점에서의 1차 Taylor model 출력과 가깝게 유지된다. 따라서 비선형 parameter dynamics 전체를 직접 풀지 않고도 kernel dynamics로 optimization과 prediction을 근사할 수 있다.
+
+\begin{presentbox}
+NTK와 kernel regression의 연결은 비유가 아니다. 초기 Jacobian $J_0(x)$가 linearized model의 feature이고, 그 Gram matrix가 정확히 $J_0J_0^\top=K_0$이다.
+\end{presentbox}
+
+\chapter{Lazy training의 정확한 의미}
+\section{작은 parameter displacement}
+미분 가능한 모델 $h(w)$가 학습 경로 전체에서
+\[
+h(w)\approx h(w_0)+Dh(w_0)(w-w_0)
+\]
+로 충분히 잘 근사되면 lazy regime이라고 부른다. Chizat--Oyallon--Bach의 관점에서는 초기 오차, 2차 미분, 1차 미분의 상대 크기를 비교하는 무차원량을 생각할 수 있다:
+\[
+\kappa_h(w_0)
+\sim
+\|h(w_0)-y^\star\|
+\frac{\|D^2h(w_0)\|}{\|Dh(w_0)\|^2}.
+\]
+이 값이 작다면 target을 맞추는 데 필요한 parameter movement가 작아, parameter-to-output map의 curvature가 leading order에서 중요하지 않다.
+
+\section{Scaling이 laziness를 강제할 수 있다}
+모델 출력의 parameter sensitivity가 scale parameter $\alpha$에 따라 커진다고 하자. 그러면 $O(1)$ 크기의 출력 변화를 만들기 위해 필요한 parameter displacement는 $O(1/\alpha)$까지 작아질 수 있다. 따라서 $\alpha\to\infty$로 보내면 architecture를 바꾸지 않고도 tangent approximation에 갇힌 regime을 만들 수 있다.
+
+\section{Lazy는 느리다는 뜻이 아니다}
+``lazy''는 optimization speed가 아니라 feature movement를 뜻한다. kernel eigenvalue가 충분히 크면 매우 빠르게 loss를 줄이면서도 내부 representation은 거의 변하지 않을 수 있다.
+
+\begin{presentbox}
+Lazy training은 기하학적으로 정의하는 편이 가장 명확하다. 학습 경로가 충분히 짧아 tangent feature가 거의 변하지 않는 regime이다. 단순히 ``wide'', ``small learning rate'', ``slow training''과 동의어가 아니다.
+\end{presentbox}
+
+\chapter{Feature learning과 scaling dichotomy}
+\section{Mean-field scaling과 NTK scaling}
+개략적인 two-layer network를
+\[
+f_m(x)=\alpha_m\sum_{i=1}^m a_i\sigma(w_i^\top x)
+\]
+라 하자. $\alpha_m\propto m^{-1/2}$와 $\alpha_m\propto m^{-1}$ 같은 scaling은 output magnitude와 parameter movement 사이의 균형을 다르게 만든다. kernel-like scaling에서는 많은 neuron이 아주 조금씩 움직여도 $O(1)$ 출력 변화가 만들어진다. 반면 mean-field scaling에서는 각 neuron이 $O(1)$만큼 이동할 수 있고, neuron distribution 자체가 시간에 따라 변한다.
+
+\section{Yang--Hu: infinite width에서도 feature learning은 가능하다}
+Tensor-program 분석은 이 scaling 문제를 체계화한다. 넓은 architecture class에서 stable parameterization을 택하면 infinite-width limit가 kernel-like regime으로 갈 수도 있고, genuine feature-learning regime으로 갈 수도 있다. 핵심은 feature learning을 유지하려면 layer별 update가 내부 representation을 $O(1)$ scale로 바꿀 수 있도록 scaling을 맞춰야 한다는 것이다.
+
+\section{$\mu$P의 의미}
+Maximal Update Parameterization ($\mu$P)는 width가 바뀌어도 layerwise update가 안정적이면서 비자명하게 유지되도록 parameter 및 learning-rate scaling을 정한다. 목표는 폭을 키웠을 때 fixed-kernel dynamics로 붕괴하지 않고 feature-learning behavior를 유지하는 것이다.
+
+\begin{warningbox}
+Kernel regime과 feature-learning regime의 구분을 성능의 우열로 읽으면 안 된다. kernel limit는 분석하기 쉽고 실제로 강한 predictor가 될 수 있다. 이론이 구분하는 것은 representation이 leading order에서 바뀔 수 있는지 여부다.
+\end{warningbox}
+
+\begin{presentbox}
+중요한 축은 finite width 대 infinite width가 아니다. frozen tangent feature 대 evolving feature이다. scaling에 따라 두 behavior 모두 infinite-width limit에서 나타날 수 있다.
+\end{presentbox}
+
+\chapter{Regime을 어떻게 비교할 것인가}
+\section{한눈에 보는 비교}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.22\textwidth}XXX}
+\toprule
+ & NTK / lazy & Mean-field & Finite feature learning\\
+\midrule
+parameter movement & vanishing / small & rescaling 후 $O(1)$ & architecture dependent\\
+kernel evolution & limit에서 소멸 & 일반적으로 비자명 & 직접 측정 가능\\
+representation & 사실상 고정 & distribution이 진화 & 진화\\
+limit equation & kernel ODE & transport PDE & nonlinear SGD/GD\\
+주요 도구 & RKHS, spectrum & Wasserstein, PDE & nonlinear optimization\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{실험에서의 진단}
+실제로는 다음을 함께 보는 것이 좋다.
+\begin{itemize}
+\item $\|K_t-K_0\|$가 얼마나 변하는가?
+\item parameter가 initialization에서 상대적으로 얼마나 멀리 이동하는가?
+\item hidden representation이 새로운 task structure에 맞게 바뀌는가?
+\item frozen-feature 또는 kernel baseline이 실제 학습된 network와 비슷한 성능을 내는가?
+\end{itemize}
+어느 하나가 보편적인 정의는 아니지만, 여러 진단을 함께 쓰면 regime 차이를 비교할 수 있다.
+
+\section{NTK theory가 말하지 않는 것}
+NTK convergence theorem은 realistic finite width에서 SGD가 반드시 동일한 solution을 찾는다고 말하지 않는다. 실제 network에서 feature learning이 없다고도 말하지 않으며, kernel predictor와 finite network가 동일한 out-of-distribution behavior를 가진다는 보장도 아니다.
+
+\begin{presentbox}
+NTK theory를 ``controlled linearization theorem''으로 설명하면 가장 깔끔하다. 강점은 training을 고정 커널 dynamics로 바꾼다는 것이고, 한계도 같은 지점에서 온다. learned representation의 변화가 1차 근사에서는 사라진다.
+\end{presentbox}
+
+\chapter{발표용 체크리스트}
+\section{반드시 남길 식 8개}
+\begin{align*}
+&\dot\theta=-J^\top r,\\
+&K_\theta=JJ^\top,\\
+&\dot r=-K_t r,\\
+&r_t=e^{-K_0t}r_0\quad(K_t=K_0),\\
+&f_{\mathrm{lin}}(x)=f_0(x)+J_0(x)(\theta-\theta_0),\\
+&f_\star(x)=f_0(x)+K_0(x,X)K_0(X,X)^+(y-f_0(X)),\\
+&\Theta^{(\ell+1)}=\Sigma^{(\ell+1)}+\Theta^{(\ell)}\dot\Sigma^{(\ell+1)},\\
+&\rho_t\text{는 mean-field regime에서 비자명하게 진화한다.}
+\end{align*}
+
+\section{자주 나오는 오류}
+\begin{itemize}
+\item $K=JJ^\top$ 자체가 infinite-width result라고 말하는 것. 이 항등식은 finite width에서도 정확하다.
+\item neural-network training 동안 kernel이 항상 고정된다고 말하는 것.
+\item infinite width를 하나의 유일한 kernel limit와 동일시하는 것.
+\item 작은 parameter displacement와 작은 function change를 혼동하는 것.
+\item representational theorem을 ``SGD가 반드시 그렇게 학습한다''는 주장으로 읽는 것.
+\end{itemize}
+
+\begin{presentbox}
+30초 결론은 다음과 같다. parameter gradient flow를 Jacobian을 통해 함수 공간으로 옮기면 NTK가 정확히 등장한다. 한 종류의 infinite-width scaling에서는 kernel이 freeze되어 network가 linearization을 따르지만, mean-field나 $\mu$P 계열 scaling에서는 feature가 leading order에서 계속 움직일 수 있다.
+\end{presentbox}
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\begin{itemize}
+\item Jacot, A., Gabriel, F., and Hongler, C. \emph{Neural Tangent Kernel: Convergence and Generalization in Neural Networks}. NeurIPS, 2018.
+\item Lee, J. et al. \emph{Wide Neural Networks of Any Depth Evolve as Linear Models Under Gradient Descent}. NeurIPS, 2019.
+\item Chizat, L., Oyallon, E., and Bach, F. \emph{On Lazy Training in Differentiable Programming}. NeurIPS, 2019.
+\item Yang, G. and Hu, E. J. \emph{Tensor Programs IV: Feature Learning in Infinite-Width Neural Networks}. ICML, 2021.
+\end{itemize}
+\end{document}

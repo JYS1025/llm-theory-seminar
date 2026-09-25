@@ -1,0 +1,401 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar -- English Study Notes
+% Compile with:
+%   xelatex FILENAME.tex
+%   xelatex FILENAME.tex
+% or: latexmk -xelatex FILENAME.tex
+% =====================================================================
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[unicode,bookmarks=false]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\hypersetup{colorlinks=true,linkcolor=NoteBlue,citecolor=NoteBlue,urlcolor=NoteBlue}
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{}{\footnotesize Length \& Algorithmic Generalization}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+\makechapterstyle{seminarnotes}{
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\grad}{\nabla}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Tr}{Tr}
+\tcbset{seminarbox/.style={enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,fonttitle=\bfseries\small,coltitle=black,attach title to upper={\quad}}}
+\newtcolorbox{keybox}[1][]{seminarbox,colback=NoteBlueLight,borderline west={1.8pt}{0pt}{NoteBlue},title={Key point#1}}
+\newtcolorbox{paperbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={From the original paper#1}}
+\newtcolorbox{suppbox}[1][]{seminarbox,colback=NoteWarmLight,borderline west={1.8pt}{0pt}{NoteWarm},title={Supplementary derivation#1}}
+\newtcolorbox{warningbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={Caution#1}}
+\newtcolorbox{presentbox}{seminarbox,colback=white,borderline west={2.2pt}{0pt}{black!70},fontupper=\footnotesize,top=1.2mm,bottom=1.2mm,before={\par},before skip=0.5em,after skip=0.5em,title={How to say it in the presentation}}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\begin{document}
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 8\par}
+\vspace{1.4cm}
+{\HUGE\bfseries Length and Algorithmic\\[0.18em]Generalization\par}
+\vspace{0.55cm}
+{\large English seminar study notes\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+\begin{minipage}{0.86\textwidth}
+\small
+These notes are an English companion to the seminar handout.  The emphasis is on
+mathematical derivations that can be followed line by line, on separating theorem
+statements from interpretation, and on identifying the assumptions under which each
+claim is valid.
+\end{minipage}
+\vfill
+{\small\textbf{Primary readings}\\[0.25em]
+Kazemnejad et al., work on positional encoding and length generalization.\\Zhou et al., work on RASP-L.\\Huang et al., work on Limit Transformers.\\Izzo et al., quantitative length-generalization bounds.\\Hou et al., \textbf{Universal Length Generalization with Turing Programs}.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+\tableofcontents*
+\clearpage
+
+\chapter{Problem setup and notation}
+\section{What length generalization asks}
+Suppose training sequences have length at most $N_{\mathrm{train}}$, but evaluation uses much larger lengths.  Length generalization asks whether the learned rule is \emph{uniform in sequence length}: does the same computation continue to solve the task when new positions and longer dependency chains appear?
+
+This is not ordinary i.i.d. generalization.  The input dimension, number of positions, and sometimes the number of algorithmic steps all change with length.
+
+\section{Three questions to separate}
+\begin{enumerate}
+\item \textbf{Representability:} does one parameterized model define the correct function for every length?
+\item \textbf{Identifiability:} do bounded-length examples uniquely determine the intended uniform rule among plausible alternatives?
+\item \textbf{Learnability/stability:} does training actually select that rule, and does repeated execution remain numerically stable?
+\end{enumerate}
+
+\begin{presentbox}
+Length generalization is fundamentally an algorithm-selection problem.  Fitting every sequence up to length $N$ does not identify what the model should do at length $N+1$ unless the hypothesis class contains a bias toward a uniform algorithm.
+\end{presentbox}
+
+\chapter{Positional encoding and extrapolation}
+\section{Why position enters first}
+If an algorithm depends on relative order or distance, the model needs a way to distinguish positions.  But having a positional feature defined at long indices is only a prerequisite; it does not prove that the same computation extrapolates.
+
+\section{Kazemnejad et al.: NoPE is not position-blind}
+A causal decoder without explicit positional embeddings still observes a position-dependent causal mask.  The number of visible predecessors changes with index, and attention can exploit this asymmetry to construct absolute or relative position signals over a bounded range.
+
+A schematic construction uses a uniform attention average over the visible prefix.  If a designated feature has a single nonzero marker, the average can create a scalar proportional to $1/t$ at position $t$; a feed-forward map can then transform this monotone quantity into an index-like code over a finite range.  Combining such signals across positions yields relative-position information.
+
+\begin{warningbox}
+The theoretical construction says that NoPE Transformers can represent positional information; it does not say NoPE is universally the best choice for extrapolation.  Kazemnejad et al.'s empirical comparisons are task- and architecture-dependent.
+\end{warningbox}
+
+\section{PE extrapolation is not algorithm extrapolation}
+Even if RoPE, ALiBi, or another encoding is mathematically defined for arbitrary $t$, the learned attention/MLP computation can still depend on frequency ranges or index patterns only seen during training.  Therefore
+\[
+\text{position code defined at long length}
+\not\Rightarrow
+\text{correct long-length algorithm}.
+\]
+
+\begin{presentbox}
+The lesson from NoPE is not ``remove positional encoding.''  It is that positional information and length generalization are separate issues: even a causal mask can encode position, while a perfectly extrapolatable position code does not guarantee algorithmic extrapolation.
+\end{presentbox}
+
+\chapter{Zhou et al.: RASP-L and the simple-program hypothesis}
+\section{RASP as a Transformer-like programming language}
+RASP describes sequence algorithms using primitives resembling attention selection, aggregation, and token-wise maps.  Because program lines can often be compiled into a small number of Transformer layers, RASP program length is a Transformer-native notion of algorithmic complexity.
+
+\section{Why RASP-L restricts the language}
+Full RASP can express operations that are representable but difficult for standard training to discover robustly.  RASP-L is a restricted fragment intended to better match operations that appear learnable by Transformers in synthetic algorithmic tasks.
+
+\section{The RASP-Generalization conjecture}
+The phenomenological hypothesis can be summarized by three ingredients:
+\begin{enumerate}
+\item \textbf{Realizability:} there exists one RASP-L program correct for all lengths;
+\item \textbf{Simplicity:} that program is short/simple in the RASP-L language;
+\item \textbf{Diversity:} the training distribution rules out even simpler shortcuts that fit short lengths but fail out of distribution.
+\end{enumerate}
+When these hold, Transformers often show strong length generalization in the experiments.
+
+\section{Why scratchpads sometimes help}
+A scratchpad is useful when it rewrites a hard end-to-end mapping into a simpler local next-step rule.  If each emitted token represents one local algorithmic transition, the RASP-L description of the next-token computation may become shorter.  A verbose scratchpad that requires extra global counting or index arithmetic can instead make the program more complicated.
+
+\begin{warningbox}
+RASP-Generalization is a conjectural explanatory framework, not a theorem that SGD minimizes RASP-L program length.
+\end{warningbox}
+
+\begin{presentbox}
+Zhou et al. shift the question from parameter interpolation to program selection: does there exist a short Transformer-native program that works at every length, and does the training set eliminate shorter spurious shortcuts?
+\end{presentbox}
+
+\chapter{Huang et al.: turning identifiability into a theorem}
+\section{Limit Transformers}
+To reason about all lengths with one object, Huang et al. define a limit-style Transformer class whose positional behavior is constrained so that infinitely many positions do not introduce infinitely many unrelated degrees of freedom.
+
+\section{PERIODIC and LOCAL structure}
+A positional mechanism is \textbf{PERIODIC} if, after some convention-dependent setup, its behavior repeats with finite period $\Delta$.  It is \textbf{LOCAL} if position-specific interactions depend only on a bounded relative window of radius $\tau$.
+
+The intuition is simple:
+\begin{itemize}
+\item PERIODIC compresses infinitely many absolute positions into finitely many position classes;
+\item LOCAL prevents independent long-range positional parameters from appearing at every new distance.
+\end{itemize}
+
+\section{Idealized inference with a bounded regularizer}
+Consider a class $\mathcal U_n$ of candidate models that fit lengths up to $n$.  An idealized procedure selects a candidate balancing empirical agreement and a bounded complexity regularizer.  The exact paper formalism is more technical, but the role of the regularizer is to keep the candidate algorithm family compact enough that incorrect rules cannot hide forever.
+
+\section{Eventual length generalization}
+Under the paper's PERIODIC/LOCAL assumptions and a bounded-complexity target represented by one Limit Transformer, there exists a finite training length $N_0$ such that the idealized selection procedure identifies a predictor that generalizes to all longer lengths.
+
+The proof intuition is an \emph{identification in the limit} argument.  Every incorrect bounded-complexity candidate differs from the true algorithm on some finite witness sequence.  Because the effective algorithm class can be finitely compressed by periodicity, locality, and the regularizer, once training covers enough finite witnesses all incorrect candidates are eliminated.
+
+\begin{warningbox}
+This is not a theorem that ordinary SGD on arbitrary Transformers always length-generalizes after seeing long enough sequences.  The guarantee is for the structured Limit-Transformer class and an idealized inference/selection procedure.
+\end{warningbox}
+
+\begin{presentbox}
+Huang et al. formalize the identifiability intuition: constrain positional behavior and model complexity so that the space of uniform algorithms is controlled; then every wrong bounded-complexity rule is eventually exposed by a finite witness.
+\end{presentbox}
+
+\chapter{Izzo et al.: how long is ``long enough''?}
+\section{Finite precision can turn softmax into hardmax}
+Assume a one-layer Limit Transformer is computed with $p$ bits of precision.  After subtracting the maximum logit for numerical stability, suppose exponentiated terms below $2^{-p}$ round to zero.  Let $\gamma(f)>0$ be the minimum positive gap between a maximal and a non-maximal normalized logit.
+
+With the length-dependent logit scaling in the model, a strictly submaximal term is bounded by
+\[
+\exp\bigl(\log N\,(a-a_*)\bigr)
+\le N^{-\gamma(f)}.
+\]
+If
+\[
+\boxed{N\ge 2^{p/\gamma(f)}},
+\]
+then
+\[
+N^{-\gamma(f)}\le 2^{-p},
+\]
+so all strictly submaximal contributions round to zero and the softmax behaves like a uniform hardmax over the maximizing set.
+
+\section{A quantitative one-layer bound}
+For one-layer, $\tau$-local, $\Delta$-periodic, translation-invariant models $f,g$ evaluated at $p$-bit precision, let $L$ denote the relevant norm scale and
+\[
+\gamma=\min\{\gamma(f),\gamma(g)\}.
+\]
+A representative theorem gives a sufficient training-length scale
+\[
+\boxed{
+N=O\!\left(
+\max\left\{
+2^{p/\gamma},
+\frac{L^2\Delta^7|\Sigma|^6\tau^2}{\varepsilon^2}
+\right\}
+\right)}
+\]
+such that agreement within $\varepsilon$ on all inputs of length at most $N$ implies $O(\varepsilon)$ agreement at arbitrary lengths, under the theorem assumptions.
+
+The dependence is more important than the exact exponents: larger norm, larger period, larger alphabet, larger locality radius, or smaller target error requires more training length.
+
+\begin{paperbox}
+The term $2^{p/\gamma}$ is a sufficient threshold arising in the proof's finite-precision hardmax regime.  It should not be interpreted as the exact empirical minimum training length.
+\end{paperbox}
+
+\section{Why empirical frequencies are enough in the hardmax regime}
+Once attention selects from finitely many token/position classes, a long sequence can be summarized by class frequencies
+\[
+\pi_c(x)=\frac{\#\{j:\text{position }j\text{ is of class }c\}}{|x|}.
+\]
+If a shorter sequence $z$ satisfies
+\[
+|\pi_c(z)-\pi_c(x)|\le\delta
+\]
+for every relevant class, attention averages remain close.  With output Lipschitz scale $L$,
+\[
+\|f(x)-f(z)\|\lesssim L\delta.
+\]
+The quantitative theorem constructs a short simulator $z$ that preserves all relevant frequencies simultaneously.
+
+\section{Infinite precision}
+Without rounding, tiny attention weights do not disappear.  The paper therefore analyzes position scalings that keep local suffix information visible at long length.  For suitable two-layer classes, the sufficient length takes a polynomial form such as
+\[
+N\lesssim
+\left(
+\max\{C(f),C(g)\}\,\varepsilon^{-1}
+\right)^{\max\{\gamma(f)^{-1},\gamma(g)^{-1},3\}},
+\]
+where $C(f)$ is a paper-specific complexity measure incorporating norm/locality/alphabet factors.
+
+\begin{presentbox}
+Huang proves that a finite identification length exists; Izzo asks how that length depends on precision, margins, norms, periodicity, locality, alphabet size, and accuracy.  The proof strategy is to simulate a long forward pass by a shorter sequence that preserves the relevant sufficient statistics.
+\end{presentbox}
+
+\chapter{Algorithmic generalization as repeated dynamics}
+\section{The same transition rule for longer time}
+Many algorithmic tasks can be written as a state recurrence
+\[
+s_{t+1}=F(s_t,u_t).
+\]
+Length extrapolation then means applying the same local transition $F$ for more steps, rather than learning a new map for every possible length.
+
+\section{Accumulation of local error}
+Suppose an approximate transition satisfies
+\[
+\|\widehat F(s,u)-F(s,u)\|\le\varepsilon
+\]
+and $F$ is $L_F$-Lipschitz in state.  Let $e_t=\|\hat s_t-s_t\|$.  Then
+\[
+e_{t+1}\le L_F e_t+\varepsilon.
+\]
+Iterating from $e_0=0$ gives
+\[
+\boxed{e_T\le\varepsilon\sum_{j=0}^{T-1}L_F^j.}
+\]
+If $L_F<1$, errors remain bounded; if $L_F=1$, they can grow linearly; if $L_F>1$, they can grow geometrically.  Thus uniform representability is not enough---execution stability matters.
+
+\section{Fixed depth versus autoregressive depth}
+A fixed-depth Transformer asked to solve a longer input in one shot must compress more algorithmic work into the same parallel depth.  A scratchpad or autoregressive solver can instead spend more decoding steps as input length grows.  Length generalization and computational-depth generalization are therefore closely linked.
+
+\begin{presentbox}
+A model can learn the correct local rule and still fail at long lengths if local approximation errors amplify.  Stable execution is the fourth ingredient after realizability, simplicity, and identifiability.
+\end{presentbox}
+
+\chapter{Turing Programs: a universal local format}
+\section{Why task-specific scratchpads are unsatisfactory}
+RASP-L analyses often rely on finding a representation tailored to each algorithm.  A natural question is whether arbitrary algorithms can be converted into a common local transition format that is friendly to length extrapolation.
+
+\section{Turing Programs}
+Hou et al. encode computation in a Turing-machine-like textual trace: each step records a local machine configuration and the next-token rule implements a bounded local transition.  Because arbitrary Turing machines can be simulated by a RASP-style construction, the representation is universal at the level of computability.
+
+\section{What universality does and does not mean}
+The representability statement is
+\[
+\begin{aligned}
+\text{arbitrary computable algorithm}
+&\longrightarrow \text{local Turing-program trace}\\
+&\longrightarrow \text{Transformer/RASP simulation}.
+\end{aligned}
+\]
+It does not prove that finite-data SGD universally learns the correct simulation or that the resulting trace is always efficient.
+
+\begin{presentbox}
+The Turing-Programs idea is to stop inventing a different scratchpad for every task and instead translate algorithms into a common local transition language.  This makes the length-generalization bias explicit, while leaving learnability as a separate question.
+\end{presentbox}
+
+\chapter{A unified view of length generalization}
+\section{Four conditions}
+A useful synthesis is:
+\begin{enumerate}
+\item \textbf{Uniform realizability:} one rule is valid for all lengths.
+\item \textbf{Bounded/simple representation:} the rule has controlled complexity in a Transformer-native language.
+\item \textbf{Identifiability/diversity:} short-length data eliminates spurious shortcuts.
+\item \textbf{Stable execution:} approximation errors do not explode when the rule is repeated longer.
+\end{enumerate}
+
+\section{How the papers fit}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.22\textwidth}XX}
+\toprule
+Paper line & Main question & Contribution\\
+\midrule
+Kazemnejad et al. & does positional encoding control extrapolation? & empirical comparison + NoPE position construction\\
+Zhou et al. & which learned rules extrapolate? & short RASP-L program conjecture\\
+Huang et al. & can identifiability be formalized? & PERIODIC/LOCAL + bounded-complexity eventual guarantee\\
+Izzo et al. & how large must training length be? & quantitative sufficient bounds\\
+Hou et al. & can one use a universal algorithmic format? & Turing Programs and RASP simulation\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Apparent contradictions}
+``NoPE can encode position'' and ``positional restrictions are needed'' are compatible: the first is a finite-range representability statement, while the second controls uniform behavior over unbounded lengths.
+
+``A task has a short RASP-L representation'' and ``the task may fall outside one Limit-Transformer subclass'' can also both be true because the formalisms impose different primitives and positional restrictions.
+
+\begin{presentbox}
+The common theme is not a particular positional encoding.  It is selecting a compact, uniform, identifiable, and stable algorithm whose definition does not change when new positions appear.
+\end{presentbox}
+
+\chapter{Presentation checklist}
+\section{Equations worth keeping}
+\begin{align*}
+&\text{fit up to }N\not\Rightarrow\text{unique behavior beyond }N,\\
+&N^{-\gamma}\le2^{-p}\quad\text{when }N\ge2^{p/\gamma},\\
+&N=O\!\left(\max\left\{2^{p/\gamma},\frac{L^2\Delta^7|\Sigma|^6\tau^2}{\varepsilon^2}\right\}\right),\\
+&\pi_c(x)=\frac{\#\{j:j\in c\}}{|x|},\\
+&e_{t+1}\le L_Fe_t+\varepsilon,\\
+&e_T\le\varepsilon\sum_{j=0}^{T-1}L_F^j.
+\end{align*}
+
+\section{Common mistakes}
+\begin{itemize}
+\item Calling NoPE universally superior based on a finite set of experiments.
+\item Presenting the RASP-L conjecture as a proved SGD theorem.
+\item Reading Huang's eventual result as a guarantee for arbitrary Transformers and ordinary training.
+\item Treating Izzo's sufficient training-length bound as a necessary threshold.
+\item Confusing Turing-program representability with universal finite-data learnability.
+\end{itemize}
+
+\begin{presentbox}
+Thirty-second conclusion: length generalization succeeds when the model represents one uniform algorithm, the hypothesis bias makes that algorithm simple, training data identifies it against short-length shortcuts, and its execution remains stable as the number of positions or algorithmic steps grows.
+\end{presentbox}
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\begin{itemize}
+\item Kazemnejad, A. et al. \emph{The Impact of Positional Encoding on Length Generalization in Transformers}. NeurIPS, 2023.
+\item Zhou, H. et al. Work on RASP-L and length generalization, ICLR 2024.
+\item Huang, Y. et al. Work on Limit Transformers and provable length generalization, ICLR 2025.
+\item Izzo, Z. et al. Work on quantitative training-length bounds for length generalization, ICLR 2026.
+\item Hou, B. et al. \emph{Universal Length Generalization with Turing Programs}. ICML, 2025.
+\end{itemize}
+\end{document}

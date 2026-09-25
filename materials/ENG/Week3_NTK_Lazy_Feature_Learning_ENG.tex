@@ -1,0 +1,398 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar -- English Study Notes
+% Compile with:
+%   xelatex FILENAME.tex
+%   xelatex FILENAME.tex
+% or: latexmk -xelatex FILENAME.tex
+% =====================================================================
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[unicode,bookmarks=false]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\hypersetup{colorlinks=true,linkcolor=NoteBlue,citecolor=NoteBlue,urlcolor=NoteBlue}
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{}{\footnotesize NTK, Lazy Training \& Feature Learning}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+\makechapterstyle{seminarnotes}{
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\grad}{\nabla}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Tr}{Tr}
+\tcbset{seminarbox/.style={enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,fonttitle=\bfseries\small,coltitle=black,attach title to upper={\quad}}}
+\newtcolorbox{keybox}[1][]{seminarbox,colback=NoteBlueLight,borderline west={1.8pt}{0pt}{NoteBlue},title={Key point#1}}
+\newtcolorbox{paperbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={From the original paper#1}}
+\newtcolorbox{suppbox}[1][]{seminarbox,colback=NoteWarmLight,borderline west={1.8pt}{0pt}{NoteWarm},title={Supplementary derivation#1}}
+\newtcolorbox{warningbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={Caution#1}}
+\newtcolorbox{presentbox}{seminarbox,colback=white,borderline west={2.2pt}{0pt}{black!70},fontupper=\footnotesize,top=1.2mm,bottom=1.2mm,before={\par},before skip=0.5em,after skip=0.5em,title={How to say it in the presentation}}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\begin{document}
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 3\par}
+\vspace{1.4cm}
+{\HUGE\bfseries Neural Tangent Kernel, Lazy Training,\\[0.18em]and Feature Learning\par}
+\vspace{0.55cm}
+{\large English seminar study notes\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+\begin{minipage}{0.86\textwidth}
+\small
+These notes are an English companion to the seminar handout.  The emphasis is on
+mathematical derivations that can be followed line by line, on separating theorem
+statements from interpretation, and on identifying the assumptions under which each
+claim is valid.
+\end{minipage}
+\vfill
+{\small\textbf{Primary readings}\\[0.25em]
+Jacot, Gabriel, Hongler, \textbf{Neural Tangent Kernel}, NeurIPS 2018.\\Lee et al., \textbf{Wide Neural Networks of Any Depth Evolve as Linear Models Under Gradient Descent}, NeurIPS 2019.\\Chizat, Oyallon, Bach, \textbf{On Lazy Training in Differentiable Programming}, NeurIPS 2019.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+\tableofcontents*
+\clearpage
+
+\chapter{Notation and the central question}
+\section{Notation map}
+Let $f_\theta(x)$ be a neural network, $\theta\in\R^p$ its parameters, and $X=(x_1,\ldots,x_n)$ the training inputs.  Write
+\[
+f_\theta(X)=\begin{bmatrix}f_\theta(x_1)&\cdots&f_\theta(x_n)\end{bmatrix}^\top,
+\qquad
+J_\theta(X)=\frac{\partial f_\theta(X)}{\partial \theta}.
+\]
+The empirical neural tangent kernel is
+\[
+K_\theta(X,X)=J_\theta(X)J_\theta(X)^\top.
+\]
+For square loss we use the residual $r_\theta=f_\theta(X)-y$.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.22\textwidth}XXX}
+\toprule
+Concept & Jacot et al. & Lee et al. & Chizat et al.\\
+\midrule
+network & $f_\theta$ & $f(\theta,x)$ & $h(w)$ / scaled model\\
+tangent kernel & $\Theta_\infty$ & $\hat\Theta_t$ & tangent model\\
+linearization & implicit in kernel limit & explicit Taylor model & lazy regime\\
+feature learning & absent in strict NTK limit & deviation from linearization & non-lazy regime\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{The question of the week}
+Mean-field theory showed that infinite width can preserve nontrivial feature motion.  NTK theory asks about a different limit: can a wide network remain so close to initialization that training is described by its first-order Taylor expansion?
+
+The crucial distinction is
+\[
+\text{width }m\to\infty
+\quad\not\Rightarrow\quad
+\text{a unique limiting dynamics}.
+\]
+The parameterization, output scaling, learning rate, and initialization jointly decide whether the limit is kernel-like or feature-learning.
+
+\begin{presentbox}
+The NTK is not introduced as an arbitrary similarity measure.  It appears exactly when parameter gradient flow is pushed through the network Jacobian into function space.
+\end{presentbox}
+
+\chapter{From parameter gradient flow to the NTK}
+\section{Function-space dynamics}
+For square loss
+\[
+\mathcal L(\theta)=\frac12\|f_\theta(X)-y\|^2=\frac12\|r_\theta\|^2,
+\]
+parameter gradient flow is
+\[
+\dot\theta_t=-\nabla_\theta\mathcal L(\theta_t).
+\]
+By the chain rule,
+\[
+\nabla_\theta\mathcal L(\theta_t)=J_t^\top r_t.
+\]
+Therefore
+\[
+\dot\theta_t=-J_t^\top r_t.
+\]
+Now differentiate the predictions:
+\begin{align*}
+\frac{d}{dt}f_{\theta_t}(X)
+&=J_t\dot\theta_t\\
+&=-J_tJ_t^\top r_t\\
+&=-K_t r_t.
+\end{align*}
+Since $y$ is fixed,
+\[
+\boxed{\dot r_t=-K_t r_t.}
+\]
+This identity is exact for any differentiable network under parameter gradient flow.
+
+\section{If the kernel is constant}
+If $K_t\equiv K_0$, then
+\[
+\dot r_t=-K_0r_t,
+\]
+so
+\[
+\boxed{r_t=e^{-K_0t}r_0.}
+\]
+If $K_0=Q\Lambda Q^\top$, each eigenmode decays as $e^{-\lambda_i t}$.  Thus the kernel spectrum determines the optimization time scales.
+
+\section{General losses}
+For a loss $\ell(f(X),y)$,
+\[
+\dot f_t(X)=-K_t\nabla_f\ell(f_t(X),y).
+\]
+The NTK therefore acts as a data-dependent preconditioner in function space.
+
+\begin{presentbox}
+First derive $\dot f=-K_t\nabla_f\ell$ before discussing infinite width.  The infinite-width theorem is then simply the claim that, under a particular scaling, $K_t$ converges to a deterministic kernel and barely changes during training.
+\end{presentbox}
+
+\chapter{Jacot et al.: the infinite-width NTK}
+\section{Kernel at initialization}
+For fully connected networks with standard independent initialization, layerwise covariances converge to deterministic recursions.  Schematically,
+\[
+\Sigma^{(0)}(x,x')=\frac1d x^\top x',
+\]
+and if $(u,v)$ is jointly Gaussian with covariance determined by $\Sigma^{(\ell)}$,
+\[
+\Sigma^{(\ell+1)}(x,x')
+=\E[\sigma(u)\sigma(v)].
+\]
+The derivative covariance is
+\[
+\dot\Sigma^{(\ell+1)}(x,x')
+=\E[\sigma'(u)\sigma'(v)].
+\]
+For a standard fully connected parameterization, the limiting NTK obeys a recursion of the form
+\[
+\Theta^{(\ell+1)}
+=\Sigma^{(\ell+1)}+\Theta^{(\ell)}\dot\Sigma^{(\ell+1)}.
+\]
+The exact base case and scaling depend on the architecture convention.
+
+\section{Kernel constancy during training}
+In the NTK parameterization, sufficiently wide networks move only a small distance in parameter space over $O(1)$ training time.  As width tends to infinity,
+\[
+K_t\longrightarrow \Theta_\infty
+\]
+uniformly over finite time intervals under the theorem assumptions.  The training dynamics then becomes
+\[
+\dot f_t(X)=-\Theta_\infty\nabla_f\ell(f_t(X),y).
+\]
+For square loss this is a linear ODE.
+
+\begin{warningbox}
+``The NTK is constant'' is an infinite-width statement under a specific scaling.  Finite networks generally have $K_t\neq K_0$, and the amount of kernel evolution is itself a useful diagnostic of feature learning.
+\end{warningbox}
+
+\begin{presentbox}
+Jacot et al. identify a regime in which a nonlinear neural network has a nonlinear forward map but nearly linear training dynamics around initialization.  The nonlinearity survives in the deterministic kernel $\Theta_\infty$; the learned features do not substantially evolve.
+\end{presentbox}
+
+\chapter{Linearization and kernel regression}
+\section{First-order Taylor model}
+Linearize around initialization $\theta_0$:
+\[
+f_{\mathrm{lin}}(x;\theta)
+=f_{\theta_0}(x)+J_0(x)(\theta-\theta_0).
+\]
+Training this linear model by gradient flow yields the same function-space equation with fixed kernel $K_0$.
+
+\section{Minimum-norm solution}
+Suppose the linearized model interpolates the training set.  Let $\Delta\theta=\theta-\theta_0$ and solve
+\[
+J_0\Delta\theta=y-f_0(X).
+\]
+Gradient flow from $\Delta\theta=0$ selects the minimum Euclidean-norm solution
+\[
+\Delta\theta_\star
+=J_0^\top(J_0J_0^\top)^+\bigl(y-f_0(X)\bigr).
+\]
+For a test point $x$,
+\begin{align*}
+f_\star(x)
+&=f_0(x)+J_0(x)\Delta\theta_\star\\
+&=f_0(x)+K_0(x,X)K_0(X,X)^+\bigl(y-f_0(X)\bigr).
+\end{align*}
+This is the ridgeless kernel-regression predictor with the empirical NTK.
+
+\section{Lee et al.: wide networks follow their linearization}
+Lee et al. make the linearization statement explicit: under suitable parameterization, width, learning-rate, and time assumptions, the trained wide network remains close to the output of its first-order Taylor model.  One consequence is that optimization and prediction can be approximated by a kernel method without solving the nonlinear parameter dynamics.
+
+\begin{presentbox}
+The bridge from NTK dynamics to kernel regression is not a metaphor.  The first-order Taylor model has features $J_0(x)$, and its Gram matrix is exactly $J_0J_0^\top=K_0$.
+\end{presentbox}
+
+\chapter{What ``lazy training'' means}
+\section{Small parameter displacement}
+A differentiable model $h(w)$ is lazy when training stays in a neighborhood where
+\[
+h(w)\approx h(w_0)+Dh(w_0)(w-w_0)
+\]
+is accurate over the relevant trajectory.  A useful dimensionless indicator discussed by Chizat--Oyallon--Bach compares initial error, second derivatives, and first derivatives, schematically
+\[
+\kappa_h(w_0)
+\sim
+\|h(w_0)-y^\star\|
+\frac{\|D^2h(w_0)\|}{\|Dh(w_0)\|^2}.
+\]
+A small value means that the model can fit the target using a displacement small enough that curvature of the parameter-to-output map remains negligible.
+
+\section{Scaling can force laziness}
+Consider a scaled model whose output sensitivity grows with a scale parameter $\alpha$.  Then an $O(1)$ change in output may require only an $O(1/\alpha)$ parameter displacement.  As $\alpha\to\infty$, the nonlinear model can therefore be forced into its tangent approximation even if the architecture itself is unchanged.
+
+\section{Lazy does not mean slow}
+The adjective refers to feature motion, not necessarily to optimization speed.  Kernel eigenvalues can be large, so a lazy model may fit rapidly while still learning almost no new representation.
+
+\begin{presentbox}
+Lazy training is best defined geometrically: the trajectory is short enough that the tangent features barely change.  It is not synonymous with ``wide,'' ``small learning rate,'' or ``slow convergence'' by themselves.
+\end{presentbox}
+
+\chapter{Feature learning and the scaling dichotomy}
+\section{Mean-field versus NTK scaling}
+For a schematic two-layer network
+\[
+f_m(x)=\alpha_m\sum_{i=1}^m a_i\sigma(w_i^\top x),
+\]
+choices such as $\alpha_m\propto m^{-1/2}$ and $\alpha_m\propto m^{-1}$ lead to different balances between output magnitude and parameter motion.  In the kernel-like scaling, a small displacement of many parameters produces an $O(1)$ output change.  In the mean-field scaling, neurons can move $O(1)$ and the feature distribution evolves.
+
+\section{Yang--Hu: feature learning in infinite-width limits}
+Tensor-program analyses make the scaling question systematic.  Under broad architecture classes and stable parameterizations, infinite-width limits can fall into kernel-like regimes or genuine feature-learning regimes.  The point is not that every parameterization is exactly one of two textbook formulas, but that nontrivial feature learning requires balancing layerwise updates so internal representations change at $O(1)$ scale.
+
+\section{$\mu$P as a practical parameterization principle}
+Maximal Update Parameterization ($\mu$P) chooses width-dependent parameter and learning-rate scalings so that updates remain nontrivial and stable as width changes.  It is designed to preserve feature-learning behavior rather than collapse to a fixed kernel.
+
+\begin{warningbox}
+Do not read the kernel/feature-learning distinction as a statement that feature learning is always superior.  Kernel limits are analytically clean and can perform very well.  The theoretical distinction concerns what the representation is allowed to change, not a universal ranking of predictors.
+\end{warningbox}
+
+\begin{presentbox}
+The important axis is not finite width versus infinite width.  It is frozen tangent features versus evolving features.  Both behaviors can survive a width limit, depending on the scaling.
+\end{presentbox}
+
+\chapter{How to compare the regimes}
+\section{A compact table}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.22\textwidth}XXX}
+\toprule
+ & NTK / lazy & Mean-field & Finite feature learning\\
+\midrule
+parameter motion & vanishing/small & $O(1)$ after rescaling & architecture dependent\\
+kernel evolution & vanishes in limit & generally nontrivial & measurable\\
+representation & effectively fixed & distribution evolves & evolves\\
+limit equation & kernel ODE & transport PDE & nonlinear SGD/GD\\
+analysis tool & RKHS, spectra & Wasserstein, PDE & nonlinear optimization\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Diagnostics in experiments}
+Common empirical questions include:
+\begin{itemize}
+\item How much does $\|K_t-K_0\|$ change?
+\item How far do parameters move relative to initialization?
+\item Do hidden representations align with new task structure?
+\item Does a frozen-feature or kernel baseline match the trained network?
+\end{itemize}
+No single diagnostic is a universal definition, but together they distinguish the regimes.
+
+\section{What NTK theory does not say}
+NTK convergence does not prove that SGD finds the same solution at realistic finite width, that feature learning is absent in practical networks, or that a kernel predictor has the same out-of-distribution behavior as the finite network.
+
+\begin{presentbox}
+The cleanest seminar message is: NTK theory is a controlled linearization theorem.  It becomes powerful precisely because it turns training into a fixed-kernel dynamical system; its limitation is the same simplification---the learned representation is frozen to first order.
+\end{presentbox}
+
+\chapter{Presentation checklist}
+\section{Eight equations to keep}
+\begin{align*}
+&\dot\theta=-J^\top r,\\
+&K_\theta=JJ^\top,\\
+&\dot r=-K_t r,\\
+&r_t=e^{-K_0t}r_0\quad(K_t=K_0),\\
+&f_{\mathrm{lin}}(x)=f_0(x)+J_0(x)(\theta-\theta_0),\\
+&f_\star(x)=f_0(x)+K_0(x,X)K_0(X,X)^+(y-f_0(X)),\\
+&\Theta^{(\ell+1)}=\Sigma^{(\ell+1)}+\Theta^{(\ell)}\dot\Sigma^{(\ell+1)},\\
+&\rho_t\text{ evolves nontrivially in the mean-field regime.}
+\end{align*}
+
+\section{Common mistakes}
+\begin{itemize}
+\item Saying that the NTK identity $K=JJ^\top$ is itself an infinite-width result; it is finite-width and exact.
+\item Saying the kernel is always constant during neural-network training.
+\item Equating infinite width with a unique kernel limit.
+\item Confusing small parameter displacement with small function change.
+\item Treating a representational theorem as a claim about what SGD necessarily learns.
+\end{itemize}
+
+\begin{presentbox}
+Thirty-second conclusion: pushing parameter gradient flow through the Jacobian produces the NTK exactly.  In one infinite-width scaling the kernel freezes and the network follows its linearization; in other scalings, including mean-field and $\mu$P-style regimes, features continue to move at leading order.
+\end{presentbox}
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\begin{itemize}
+\item Jacot, A., Gabriel, F., and Hongler, C. \emph{Neural Tangent Kernel: Convergence and Generalization in Neural Networks}. NeurIPS, 2018.
+\item Lee, J. et al. \emph{Wide Neural Networks of Any Depth Evolve as Linear Models Under Gradient Descent}. NeurIPS, 2019.
+\item Chizat, L., Oyallon, E., and Bach, F. \emph{On Lazy Training in Differentiable Programming}. NeurIPS, 2019.
+\item Yang, G. and Hu, E. J. \emph{Tensor Programs IV: Feature Learning in Infinite-Width Neural Networks}. ICML, 2021.
+\end{itemize}
+\end{document}

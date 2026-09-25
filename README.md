@@ -6,14 +6,14 @@ An eight-week seminar on the mathematical and computational foundations of moder
 
 | Week | Topic | Study Notes | Slides | Video |
 |:---:|---|---|:---:|:---:|
-| 01 | Gradient Flow & Edge of Stability | [KOR PDF](materials/KOR/gradient_flow_edge_of_stability_notes.pdf) · [ENG PDF](materials/ENG/week1_gradient_flow_edge_of_stability_en.pdf) | Coming soon | Coming soon |
-| 02 | Mean-Field Theory & Infinite-Width Dynamics | [KOR PDF](materials/KOR/mean_field_infinite_width_notes.pdf) · [ENG PDF](materials/ENG/week2_mean_field_infinite_width_en.pdf) | Coming soon | Coming soon |
-| 03 | Neural Tangent Kernel, Lazy Training & Feature Learning | [KOR PDF](materials/KOR/ntk_lazy_feature_learning_notes.pdf) · [ENG PDF](materials/ENG/week3_ntk_lazy_feature_learning_en.pdf) | Coming soon | Coming soon |
-| 04 | Transformer Expressivity | [KOR PDF](materials/KOR/transformer_expressivity_notes.pdf) · [ENG PDF](materials/ENG/week4_transformer_expressivity_en.pdf) | Coming soon | Coming soon |
-| 05 | Transformer Computational Theory | [KOR PDF](materials/KOR/transformer_computational_theory_notes.pdf) · [ENG PDF](materials/ENG/week5_transformer_computational_theory_en.pdf) | Coming soon | Coming soon |
-| 06 | In-Context Learning Theory | [KOR PDF](materials/KOR/in_context_learning_theory_notes.pdf) · [ENG PDF](materials/ENG/week6_in_context_learning_theory_en.pdf) | Coming soon | Coming soon |
-| 07 | Chain-of-Thought & Reasoning Complexity | [KOR PDF](materials/KOR/chain_of_thought_reasoning_complexity_notes.pdf) · [ENG PDF](materials/ENG/week7_chain_of_thought_reasoning_complexity_en.pdf) | Coming soon | Coming soon |
-| 08 | Length & Algorithmic Generalization | [KOR PDF](materials/KOR/length_algorithmic_generalization_notes.pdf) · [ENG PDF](materials/ENG/week8_length_algorithmic_generalization_en.pdf) | Coming soon | Coming soon |
+| 01 | Gradient Flow & Edge of Stability | [KOR PDF](materials/KOR/Week1_Gradient_Flow_Edge_of_Stability_KOR.pdf)<br>[ENG PDF](materials/ENG/Week1_Gradient_Flow_Edge_of_Stability_ENG.pdf) | Coming soon | Coming soon |
+| 02 | Mean-Field Theory & Infinite-Width Dynamics | [KOR PDF](materials/KOR/Week2_Mean_Field_Infinite_Width_KOR.pdf)<br>[ENG PDF](materials/ENG/Week2_Mean_Field_Infinite_Width_ENG.pdf) | Coming soon | Coming soon |
+| 03 | Neural Tangent Kernel, Lazy Training & Feature Learning | [KOR PDF](materials/KOR/Week3_NTK_Lazy_Feature_Learning_KOR.pdf)<br>[ENG PDF](materials/ENG/Week3_NTK_Lazy_Feature_Learning_ENG.pdf) | Coming soon | Coming soon |
+| 04 | Transformer Expressivity | [KOR PDF](materials/KOR/Week4_Transformer_Expressivity_KOR.pdf)<br>[ENG PDF](materials/ENG/Week4_Transformer_Expressivity_ENG.pdf) | Coming soon | Coming soon |
+| 05 | Transformer Computational Theory | [KOR PDF](materials/KOR/Week5_Transformer_Computational_Theory_KOR.pdf)<br>[ENG PDF](materials/ENG/Week5_Transformer_Computational_Theory_ENG.pdf) | Coming soon | Coming soon |
+| 06 | In-Context Learning Theory | [KOR PDF](materials/KOR/Week6_In_Context_Learning_Theory_KOR.pdf)<br>[ENG PDF](materials/ENG/Week6_In_Context_Learning_Theory_ENG.pdf) | Coming soon | Coming soon |
+| 07 | Chain-of-Thought & Reasoning Complexity | [KOR PDF](materials/KOR/Week7_Chain_of_Thought_Reasoning_Complexity_KOR.pdf)<br>[ENG PDF](materials/ENG/Week7_Chain_of_Thought_Reasoning_Complexity_ENG.pdf) | Coming soon | Coming soon |
+| 08 | Length & Algorithmic Generalization | [KOR PDF](materials/KOR/Week8_Length_Algorithmic_Generalization_KOR.pdf)<br>[ENG PDF](materials/ENG/Week8_Length_Algorithmic_Generalization_ENG.pdf) | Coming soon | Coming soon |
 
 > Replace each `Coming soon` entry with a Markdown link when the corresponding slides or recording becomes available.
 
@@ -61,4 +61,3 @@ A TeX distribution with the fonts and packages referenced by each source file is
 Primary references are listed in the bibliography of each week's notes. Consult the original papers for authoritative theorem statements, assumptions, notation, and citations.
 
 These materials were prepared for educational and seminar use. They may contain interpretation, reconstructed derivations, or simplifications and should not be treated as a substitute for the cited sources. If you find an error or have a suggested correction, please open an issue or submit a pull request.
-

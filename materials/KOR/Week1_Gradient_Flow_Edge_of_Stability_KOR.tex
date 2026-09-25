@@ -1,0 +1,1372 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar Week 1: Gradient Flow and Edge of Stability
+%
+% Compile:
+%   xelatex gradient_flow_edge_of_stability_notes.tex
+%   xelatex gradient_flow_edge_of_stability_notes.tex
+% or
+%   latexmk -xelatex gradient_flow_edge_of_stability_notes.tex
+%
+% Korean typesetting: kotex + XeLaTeX.
+%
+% Layout reference / inspiration (flattened into this single file):
+%   - Ben Jones, "lecture-notes" (Overleaf, CC BY 4.0)
+%   - CMU-Notes/notes-template (structured university course notes)
+% The present file does not depend on an external .cls or .sty file.
+% =====================================================================
+
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+
+\usepackage{kotex}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[unicode]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+
+% ---------- page geometry ----------
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+
+% ---------- restrained lecture-note palette ----------
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\definecolor{NoteRule}{HTML}{C8CDD2}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=NoteBlue,
+  citecolor=NoteBlue,
+  urlcolor=NoteBlue,
+  pdftitle={Gradient Flow and Edge of Stability},
+  pdfauthor={LLM Theory Seminar}
+}
+
+% ---------- running heads ----------
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{ }{\footnotesize Gradient Flow \& Edge of Stability}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+
+% ---------- chapter / section hierarchy ----------
+\makechapterstyle{seminarnotes}{
+  % Compact lecture-note chapter opening: large numeral, no decorative rule.
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+
+% ---------- notation ----------
+\newcommand{\Loss}{\mathcal{L}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\grad}{\nabla}
+\newcommand{\Hess}{\nabla^2}
+\newcommand{\lmax}{\lambda_{\max}}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\T}{\mathsf{T}}
+\newcommand{\PT}{P_{\T}}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\rank}{rank}
+
+% ---------- note environments ----------
+% The boxes use a single accent family and a left rule, following the visual
+% grammar of mathematical lecture-note templates rather than presentation slides.
+\tcbset{
+  seminarbox/.style={
+    enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,
+    left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,
+    before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,
+    fonttitle=\bfseries\small,coltitle=black,
+    attach title to upper={\quad},
+  }
+}
+\newtcolorbox{keybox}[1][]{
+  seminarbox,colback=NoteBlueLight,
+  borderline west={1.8pt}{0pt}{NoteBlue},
+  title={핵심#1}
+}
+\newtcolorbox{paperbox}[1][]{
+  seminarbox,colback=NoteGrayLight,
+  borderline west={1.8pt}{0pt}{NoteGray},
+  title={원 논문 기준#1}
+}
+\newtcolorbox{suppbox}[1][]{
+  seminarbox,colback=NoteWarmLight,
+  borderline west={1.8pt}{0pt}{NoteWarm},
+  title={보충 유도 --- 논문 밖의 독자용 전개#1}
+}
+\newtcolorbox{warningbox}[1][]{
+  seminarbox,colback=NoteGrayLight,
+  borderline west={1.8pt}{0pt}{NoteGray},
+  title={주의#1}
+}
+\newtcolorbox{presentbox}{
+  seminarbox,colback=white,
+  borderline west={2.2pt}{0pt}{black!70},
+  fontupper=\footnotesize,
+  top=1.2mm,bottom=1.2mm,before skip=0.5em,after skip=0.5em,
+  title={발표에서 이렇게 말하기}
+}
+
+\theoremstyle{definition}
+\newtheorem{definition}{정의}[chapter]
+\newtheorem{proposition}{명제}[chapter]
+
+\begin{document}
+
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 1\par}
+\vspace{1.4cm}
+{\HUGE\bfseries Gradient Flow와\\[0.18em]Edge of Stability\par}
+\vspace{0.55cm}
+{\large 최적화 이론 입문자를 위한 발표 준비 노트\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+
+\begin{minipage}{0.86\textwidth}
+\small
+Gradient descent를 연속시간 극한으로 보내 얻는 gradient flow에서 출발하여,
+유한 step size가 만드는 안정성 경계 $2/\eta$와 neural-network training의
+Edge of Stability를 연결한다. 마지막에는 Cohen et al.의 실험적 관찰과
+Arora--Li--Panigrahi의 limiting-flow 해석을 같은 그림 안에서 정리한다.
+\end{minipage}
+
+\vfill
+{\small
+\textbf{Primary readings}\\[0.25em]
+Cohen et al., \textbf{Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability}, ICLR 2021.\\
+Arora, Li, Panigrahi, \textbf{Understanding Gradient Descent on the Edge of Stability in Deep Learning}, ICML 2022.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+
+\tableofcontents*
+\clearpage
+
+% ================================================================
+\chapter{먼저 맞춰 둘 기호와 큰 그림}
+% ================================================================
+
+\section{기호 대응표}
+
+논문과 ODE/최적화 교재는 같은 대상을 다른 문자로 쓴다. 이 노트에서는 가능한 한
+\(\theta\), \(\Loss\), \(\eta\), \(t\)로 통일하되, 원 논문의 수식을 소개할 때는 원 기호를 병기한다.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.17\textwidth} *{4}{>{\raggedright\arraybackslash}X}}
+\toprule
+개념 & 이 노트 & \makecell[l]{ODE/수치해석\\관용} & \makecell[l]{Cohen et al.\\(2021)} & \makecell[l]{Arora et al.\\(2022)} \\
+\midrule
+파라미터 & $\theta$ 또는 $x$ & $x(t)$ & $x_t$ & $x$, $x_\eta(t)$ \\
+목적함수/에너지 & $\Loss$ & $F$, $E$, $\mathcal E$ & $f$ & $L$ \\
+GD step size & $\eta$ & $h$ (Euler step) & $\eta$ & $\eta$ \\
+연속시간 & $t$ & $t$ 또는 $\tau$ & gradient-flow time $t$ & $\tau$ \\
+이산 iteration & $k$ & $k$ & $t$ (논문 표기) & $t\in\mathbb N$ \\
+Hessian & $H=\Hess\Loss$ & $\Hess F$ & $\Hess f$ & $\Hess L$ \\
+sharpness & $\lambda_1$ & $\lmax(H)$ & $\lmax(\Hess f)$ & $\lambda_1(\Hess L)$ \\
+최소점 집합 & $\Gamma$ & --- & --- & $\Gamma=\{x:L(x)=0\}$ \\
+GF 종착점 사상 & $\Phi$ & --- & --- & $\Phi(x)=\lim_{\tau\to\infty}\phi(x,\tau)$ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{warningbox}[--- 특히 $L$의 중복 사용]
+최적화 교재에서는 ``$L$-smooth''의 $L$이 \textbf{Lipschitz constant}를 뜻하는 경우가 많지만,
+Arora et al.에서는 $L(x)$가 \textbf{loss function} 자체다. 혼동을 피하기 위해 이 노트에서는
+smoothness constant를 $\beta$로 쓴다.
+\end{warningbox}
+
+\section{한 장으로 보는 전체 논리}
+
+\begin{enumerate}
+  \item GD는
+  \[
+    \theta_{k+1}=\theta_k-\eta\grad\Loss(\theta_k)
+  \]
+  이고, $\eta\to0$에서 시간을 $t=k\eta$로 보면 GF
+  \[
+    \dot\theta(t)=-\grad\Loss(\theta(t))
+  \]
+  로 간다.
+
+  \item GF는 연속시간 chain rule 때문에
+  \[
+    \frac{d}{dt}\Loss(\theta(t))=-\norm{\grad\Loss(\theta(t))}^2\le0
+  \]
+  이다. 즉 \textbf{GF 자체에는 finite-step overshoot가 없다.}
+
+  \item 반면 GD는 1차원 quadratic에서
+  \[
+    e_{k+1}=(1-\eta\lambda)e_k
+  \]
+  이므로 안정하려면 $|1-\eta\lambda|<1$, 즉
+  \[
+    \boxed{0<\eta\lambda<2}
+  \]
+  가 필요하다.
+
+  \item 신경망에서는 학습 중 sharpness $\lambda_1$이 증가하는 \textbf{progressive sharpening}이 관측된다.
+  그러다가 $\lambda_1\approx2/\eta$에 도달하면 loss가 짧은 시간축에서 진동하지만 긴 시간축에서는 계속 감소한다.
+  이것이 Edge of Stability다.
+
+  \item Arora et al.은 특정 설정에서 이 진동이 단순한 ``실패''가 아니라,
+  최소점 manifold 위에서 sharpness를 낮추는 느린 drift를 유도한다는 것을 보인다.
+\end{enumerate}
+
+\begin{keybox}
+이 세미나의 핵심 대비는
+\[
+\begin{aligned}
+&\text{Gradient Flow: infinitesimal-step dynamics},\\
+&\text{Edge of Stability: finite-step dynamics}.
+\end{aligned}
+\]
+이다. EoS는 GF의 작은 수정이 아니라, discretization이 본질적으로 만드는 현상이다.
+\end{keybox}
+
+\begin{presentbox}
+``오늘은 GD를 연속시간으로 보내면 왜 gradient flow가 되는지부터 시작하겠습니다.
+Gradient flow에서는 loss가 반드시 감소합니다. 그런데 실제 finite-step GD는 Hessian의 최대 고유값이
+$2/\eta$ 부근에 가면 전혀 다른 동역학을 보입니다. 이 두 regime 사이의 연결과 단절이 오늘 발표의 중심입니다.''
+\end{presentbox}
+
+% ================================================================
+\chapter{Gradient Descent에서 Gradient Flow로}
+% ================================================================
+
+\section{GD를 Euler discretization으로 보기}
+
+GD의 update는
+\begin{equation}
+  \theta_{k+1}=\theta_k-\eta\grad\Loss(\theta_k).
+  \label{eq:gd}
+\end{equation}
+양변에서 $\theta_k$를 빼고 $\eta$로 나누면
+\begin{align}
+  \frac{\theta_{k+1}-\theta_k}{\eta}
+  &= -\grad\Loss(\theta_k). \label{eq:difference-quotient}
+\end{align}
+이제 연속시간 격자를
+\[
+  t_k=k\eta
+\]
+로 두고 $\theta_k\approx\theta(t_k)$라고 생각한다. 그러면 $\eta\to0$에서
+\begin{align}
+  \frac{\theta(t_k+\eta)-\theta(t_k)}{\eta}
+  &\longrightarrow \frac{d\theta}{dt}(t),\\
+  -\grad\Loss(\theta_k)
+  &\longrightarrow -\grad\Loss(\theta(t)).
+\end{align}
+따라서 형식적으로
+\begin{equation}
+  \boxed{\dot\theta(t)=-\grad\Loss(\theta(t))}
+  \label{eq:gf}
+\end{equation}
+를 얻는다. 이것이 gradient flow다.
+
+\begin{suppbox}[--- ``GD $\to$ GF''에서 실제로 쓰는 가정]
+위 극한은 단순히 $\eta\to0$라고 쓰는 것만으로 자동으로 성립하는 것은 아니다.
+예를 들어 $\grad\Loss$가 국소 Lipschitz이면 ODE의 국소 해의 존재/유일성을 확보할 수 있고,
+explicit Euler 방법인 GD가 유한 시간 구간에서 GF를 근사한다는 표준 수치해석 결과를 사용할 수 있다.
+세미나에서는 이 정리를 증명하기보다 ``GD가 GF의 explicit Euler discretization''이라는 구조를 기억하면 충분하다.
+\end{suppbox}
+
+\section{왜 이름이 ``flow''인가?}
+
+초기값 $x$에서 시작한 GF 해를 $\phi(x,t)$라고 쓰면
+\begin{align}
+  \frac{d}{dt}\phi(x,t)&=-\grad\Loss(\phi(x,t)),\\
+  \phi(x,0)&=x.
+\end{align}
+이를 적분형으로 쓰면
+\begin{equation}
+  \phi(x,t)
+  =x-\int_0^t \grad\Loss(\phi(x,s))\,ds.
+  \label{eq:gf-integral}
+\end{equation}
+Arora et al.도 이 형태를 사용하며 연속시간을 $\tau$로 표기한다.
+
+\section{가장 중요한 identity: energy dissipation}
+
+GF 위에서 loss를 시간으로 미분한다. Chain rule을 한 줄씩 적용하면
+\begin{align}
+  \frac{d}{dt}\Loss(\theta(t))
+  &= \inner{\grad\Loss(\theta(t))}{\dot\theta(t)}
+  &&\text{(chain rule)}\\
+  &= \inner{\grad\Loss(\theta(t))}{-\grad\Loss(\theta(t))}
+  &&\text{(GF: $\dot\theta=-\grad\Loss$)}\\
+  &= -\norm{\grad\Loss(\theta(t))}^2\\
+  &\le 0.
+  \label{eq:energy-dissipation}
+\end{align}
+즉
+\begin{equation}
+  \boxed{\frac{d}{dt}\Loss(\theta(t))=-\norm{\grad\Loss(\theta(t))}^2}
+\end{equation}
+이다.
+
+$t\in[0,T]$에 대해 적분하면
+\begin{align}
+  \Loss(\theta(T))-\Loss(\theta(0))
+  &= -\int_0^T \norm{\grad\Loss(\theta(t))}^2\,dt,\\
+  \Loss(\theta(0))-\Loss(\theta(T))
+  &= \int_0^T \norm{\grad\Loss(\theta(t))}^2\,dt.
+  \label{eq:energy-integral}
+\end{align}
+따라서 GF에서 loss가 증가하는 구간은 없다.
+
+\begin{keybox}
+EoS에서 loss가 step마다 위아래로 움직이는 현상은 \textbf{gradient flow에서는 발생할 수 없다}.
+따라서 EoS를 이해하려면 ``작은 learning rate의 연속시간 근사''만 봐서는 부족하다.
+\end{keybox}
+
+\section{PL 조건 아래에서의 지수 수렴}
+
+최적값을 $\Loss_\star$라 하자. Polyak--\L{}ojasiewicz(PL) 조건을
+\begin{equation}
+  \frac12\norm{\grad\Loss(\theta)}^2
+  \ge \mu\bigl(\Loss(\theta)-\Loss_\star\bigr)
+  \label{eq:pl}
+\end{equation}
+라고 하자. 그러면 \eqref{eq:energy-dissipation}에서
+\begin{align}
+  \frac{d}{dt}\bigl(\Loss(\theta(t))-\Loss_\star\bigr)
+  &= -\norm{\grad\Loss(\theta(t))}^2\\
+  &\le -2\mu\bigl(\Loss(\theta(t))-\Loss_\star\bigr).
+\end{align}
+$g(t)=\Loss(\theta(t))-\Loss_\star$라 두자. $g(t)>0$인 동안에는 $g(t)$로 나눌 수 있으므로
+\begin{align}
+  \dot g(t)&\le -2\mu g(t),\\
+  \frac{\dot g(t)}{g(t)}&\le -2\mu,\\
+  \int_0^t \frac{\dot g(s)}{g(s)}\,ds&\le -2\mu t,\\
+  \log g(t)-\log g(0)&\le -2\mu t,\\
+  g(t)&\le g(0)e^{-2\mu t}.
+\end{align}
+어떤 시점에 $g(t)=0$이 되면 이미 최적값에 도달한 것이므로 이후 결론은 자명하다. 따라서 전체적으로
+\begin{equation}
+  \boxed{\Loss(\theta(t))-\Loss_\star
+  \le e^{-2\mu t}\bigl(\Loss(\theta(0))-\Loss_\star\bigr).}
+\end{equation}
+
+\begin{suppbox}[--- PL과 strong convexity는 같은가?]
+Strong convexity는 PL을 함의하지만 PL은 convexity를 요구하지 않는다.
+따라서 과매개변수화된 비볼록 문제에서도 국소적으로 PL-type inequality가 성립하는 분석이 가능하다.
+Arora et al.의 부록에서도 최소점 manifold 근방에서 이런 형태의 제어를 사용한다.
+\end{suppbox}
+
+\section{Quadratic에서 GF를 정확히 풀기}
+
+가장 중요한 모델은
+\begin{equation}
+  \Loss(x)=\frac12 x^\top A x,
+  \qquad A=A^\top\succeq0.
+\end{equation}
+이다. 그러면
+\begin{align}
+  \grad\Loss(x)&=Ax,\\
+  \dot x(t)&=-Ax(t).
+\end{align}
+해는 matrix exponential로
+\begin{equation}
+  x(t)=e^{-At}x(0).
+\end{equation}
+$A=Q\Lambda Q^\top$로 eigendecomposition하고 $z=Q^\top x$를 두면
+\begin{align}
+  \dot z(t)
+  &=Q^\top\dot x(t)\\
+  &=-Q^\top A x(t)\\
+  &=-Q^\top Q\Lambda Q^\top x(t)\\
+  &=-\Lambda z(t).
+\end{align}
+따라서 각 eigenmode $i$는 독립적으로
+\begin{align}
+  \dot z_i(t)&=-\lambda_i z_i(t),\\
+  z_i(t)&=e^{-\lambda_i t}z_i(0).
+\end{align}
+$\lambda_i>0$이면 어떤 크기의 곡률이라도 연속시간 GF는 안정적으로 감쇠한다.
+
+\begin{suppbox}[--- steepest descent라는 기하적 해석]
+현재 위치 $\theta$에서 순간 속도 $v$를 고른다고 하자. 1차 loss 변화와 속도 비용의 합
+\[
+  \inner{\grad\Loss(\theta)}{v}+\frac12\norm v^2
+\]
+를 최소화하면
+\begin{align}
+  0&=\grad_v\left(\inner{\grad\Loss}{v}+\frac12\norm v^2\right)\\
+   &=\grad\Loss+v,\\
+  v^*&=-\grad\Loss.
+\end{align}
+즉 Euclidean metric에서 GF는 매 순간 가장 가파르게 내려가는 속도를 선택한다.
+\end{suppbox}
+
+\begin{presentbox}
+``GD update를 $\eta$로 나누면 바로 difference quotient가 보입니다. 그래서 $t=k\eta$로 놓고
+$\eta\to0$을 취하면 $\dot\theta=-\nabla L$이 됩니다. 중요한 점은 이 연속시간 시스템에서는
+$\dot L=-\|\nabla L\|^2$라서 loss가 절대로 올라가지 않는다는 것입니다. 이후 EoS에서 loss가 진동한다는 사실은
+바로 이 GF 근사가 깨졌다는 신호입니다.''
+\end{presentbox}
+
+% ================================================================
+\chapter{유한 step size와 \texorpdfstring{$2/\eta$}{2/eta} 안정성 경계}
+% ================================================================
+
+\section{1차원 quadratic: 모든 것이 여기서 시작한다}
+
+\begin{equation}
+  f(x)=\frac12 a x^2+bx+c,\qquad a>0
+\end{equation}
+를 생각하자. 최적점은
+\begin{equation}
+  x_\star=-\frac{b}{a}.
+\end{equation}
+GD는
+\begin{align}
+  x_{k+1}
+  &=x_k-\eta(ax_k+b).
+\end{align}
+오차 $e_k=x_k-x_\star$를 쓰면
+\begin{align}
+  e_{k+1}
+  &=x_{k+1}-x_\star\\
+  &=x_k-x_\star-\eta(ax_k+b)\\
+  &=e_k-\eta a(x_k-x_\star)
+  &&\text{($ax_\star+b=0$)}\\
+  &=(1-\eta a)e_k.
+\end{align}
+반복하면
+\begin{equation}
+  \boxed{e_k=(1-\eta a)^k e_0.}
+  \label{eq:1d-gd}
+\end{equation}
+수렴 조건은
+\begin{align}
+  |1-\eta a|&<1\\
+  -1&<1-\eta a<1\\
+  -2&<-\eta a<0\\
+  0&<\eta a<2.
+\end{align}
+따라서
+\begin{equation}
+  \boxed{a<\frac{2}{\eta}}
+\end{equation}
+가 stability threshold다.
+
+\subsection{세 regime를 구분하자}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+조건 & multiplier $1-\eta a$ & 동역학 \\
+\midrule
+$0<\eta a<1$ & $(0,1)$ & 부호 변화 없이 감쇠 \\
+$1<\eta a<2$ & $(-1,0)$ & 좌우로 진동하며 감쇠 \\
+$\eta a=2$ & $-1$ & 크기 일정, period-2 진동 \\
+$\eta a>2$ & $<-1$ & 진동 크기가 커지며 발산 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{keybox}
+``oscillation'' 자체와 ``instability''는 구분해야 한다.
+$1<\eta a<2$에서도 부호는 매번 바뀌지만 크기는 감소한다.
+진짜 quadratic stability boundary는 $\eta a=2$다.
+\end{keybox}
+
+\section{\texorpdfstring{$d$}{d}차원 quadratic: sharpness가 등장한다}
+
+\begin{equation}
+  f(x)=\frac12x^\top A x+b^\top x+c,
+  \qquad A=A^\top\succ0.
+\end{equation}
+최적점 $x_\star$에 대해 $e_k=x_k-x_\star$라 두면
+\begin{equation}
+  e_{k+1}=(I-\eta A)e_k.
+\end{equation}
+$A=Q\Lambda Q^\top$이고 $z_k=Q^\top e_k$이면
+\begin{align}
+  z_{k+1}
+  &=Q^\top e_{k+1}\\
+  &=Q^\top(I-\eta A)e_k\\
+  &=(I-\eta\Lambda)Q^\top e_k\\
+  &=(I-\eta\Lambda)z_k.
+\end{align}
+따라서 각 성분은
+\begin{equation}
+  z_{i,k+1}=(1-\eta\lambda_i)z_{i,k}.
+\end{equation}
+모든 방향이 안정하려면
+\begin{align}
+  |1-\eta\lambda_i|&<1\qquad\forall i,\\
+  \eta\lambda_i&<2\qquad\forall i,\\
+  \eta\lambda_{\max}(A)&<2.
+\end{align}
+즉
+\begin{equation}
+  \boxed{\lambda_{\max}(A)<\frac{2}{\eta}.}
+  \label{eq:quadratic-threshold}
+\end{equation}
+
+Cohen et al.은 neural-network training loss의 Hessian 최대 고유값을
+\begin{equation}
+  \text{sharpness}(x):=\lambda_{\max}(\Hess f(x))
+\end{equation}
+라고 정의한다.
+
+\section{GF와 GD가 curvature를 처리하는 방식의 차이}
+
+quadratic의 eigenmode 하나만 보면,
+\begin{align}
+  \text{GF:}\qquad z_i(t+\eta)
+  &=e^{-\eta\lambda_i}z_i(t),\\
+  \text{GD:}\qquad z_{i,k+1}
+  &=(1-\eta\lambda_i)z_{i,k}.
+\end{align}
+Taylor expansion으로
+\begin{align}
+  e^{-\eta\lambda_i}
+  &=1-\eta\lambda_i+\frac12(\eta\lambda_i)^2
+  -\frac16(\eta\lambda_i)^3+\cdots.
+\end{align}
+즉 $\eta\lambda_i\ll1$일 때만
+\begin{equation}
+  1-\eta\lambda_i\approx e^{-\eta\lambda_i}
+\end{equation}
+이다. curvature가 learning-rate scale에 비해 커지면 둘은 질적으로 달라진다.
+
+\begin{suppbox}[--- 왜 GF에는 $2/\eta$가 없는가]
+GF multiplier $e^{-\eta\lambda}$는 $\lambda>0$이면 항상 $(0,1)$이다.
+반면 GD multiplier $1-\eta\lambda$는 유한한 Euler step 때문에 $-1$ 아래로 내려갈 수 있다.
+따라서 $2/\eta$는 원래 loss landscape의 고유한 상수가 아니라
+\textbf{landscape curvature와 discretization step의 상호작용으로 생기는 경계}다.
+\end{suppbox}
+
+\section{Descent lemma에서 나타나는 \texorpdfstring{$2/\beta$}{2/beta} 충분조건}
+
+$\Loss$가 $\beta$-smooth하다고 하자:
+\begin{equation}
+  \norm{\grad\Loss(x)-\grad\Loss(y)}\le\beta\norm{x-y}.
+\end{equation}
+표준 descent lemma는
+\begin{equation}
+  \Loss(y)\le \Loss(x)+\inner{\grad\Loss(x)}{y-x}
+  +\frac{\beta}{2}\norm{y-x}^2.
+\end{equation}
+여기서 GD step $y=x-\eta\grad\Loss(x)$를 대입한다.
+\begin{align}
+  \Loss(x-\eta\grad\Loss(x))
+  &\le \Loss(x)
+  +\inner{\grad\Loss(x)}{-\eta\grad\Loss(x)}
+  +\frac{\beta}{2}\norm{-\eta\grad\Loss(x)}^2\\
+  &=\Loss(x)-\eta\norm{\grad\Loss(x)}^2
+  +\frac{\beta\eta^2}{2}\norm{\grad\Loss(x)}^2\\
+  &=\Loss(x)-\eta\left(1-\frac{\beta\eta}{2}\right)
+  \norm{\grad\Loss(x)}^2.
+\end{align}
+따라서
+\begin{equation}
+  1-\frac{\beta\eta}{2}>0
+  \quad\Longleftrightarrow\quad
+  \eta<\frac{2}{\beta}
+\end{equation}
+이면 매 step의 monotone descent가 \textbf{보장}된다. 일반적인 nonlinear loss에서 이것은 exact stability boundary가 아니라
+$\beta$-smoothness로부터 얻는 \textbf{충분조건}이다.
+
+\begin{warningbox}
+여기서 $\beta$는 보통 관심 영역 전체를 지배하는 smoothness constant다.
+실험에서 측정하는 현재점의 sharpness $\lambda_{\max}(\Hess\Loss(x))$와 완전히 같은 개념은 아니다.
+고정 PSD quadratic에서는 Hessian이 상수이고 $\beta=\lambda_{\max}(A)$이므로,
+앞에서 구한 exact stability threshold $\eta\lambda_{\max}(A)<2$와 일치한다.
+\end{warningbox}
+
+\section{비볼록 neural loss에서는 왜 \texorpdfstring{$2/\eta$}{2/eta}를 넘자마자 영원히 발산하지 않는가?}
+
+현재점 $x_k$에서 2차 Taylor approximation을 쓰면
+\begin{equation}
+  \Loss(x_k+\delta)
+  \approx \Loss(x_k)+g_k^\top\delta+\frac12\delta^\top H_k\delta.
+\end{equation}
+$H_k$가 고정된 quadratic라면 $\lambda_1(H_k)>2/\eta$는 top eigendirection에서 발산을 뜻한다.
+하지만 실제 neural loss에서는
+\begin{equation}
+  H_{k+1}\neq H_k,
+\end{equation}
+즉 iterate가 움직이면서 local quadratic 자체가 바뀐다.
+따라서 local instability가 ``전체 trajectory의 무조건적 발산''을 뜻하지는 않는다.
+바로 이 점이 EoS의 출발점이다.
+
+\begin{presentbox}
+``$2/\eta$는 1차원 quadratic에서 바로 나옵니다. 오차가 매 step마다 $1-\eta\lambda$만큼 곱해지므로
+그 절댓값이 1보다 작아야 합니다. 다차원에서는 Hessian eigenbasis로 분해하면 똑같은 식이 방향별로 생기고,
+가장 먼저 깨지는 방향이 top Hessian eigenvector입니다. 그래서 sharpness가 핵심 변수가 됩니다.''
+\end{presentbox}
+
+% ================================================================
+\chapter{Cohen et al. (2021): Edge of Stability라는 관측}
+% ================================================================
+
+\section{논문이 발견한 두 단계}
+
+Cohen et al.은 full-batch GD로 여러 neural network를 학습하면서 Hessian의 최대 고유값을 추적했다.
+핵심 관측은 다음과 같다.
+
+\begin{paperbox}
+\begin{enumerate}
+  \item \textbf{Progressive sharpening:} sharpness가 $2/\eta$보다 충분히 작을 때 학습 중 점차 증가하는 경우가 많다.
+  \item \textbf{Edge of Stability:} sharpness가 $2/\eta$에 도달한 뒤에는 그 근처 또는 조금 위에서 머문다.
+  \item 이때 train loss는 step-by-step으로는 비단조적으로 진동하지만, 긴 시간축에서는 계속 감소한다.
+\end{enumerate}
+\end{paperbox}
+
+이를 개념적으로 쓰면
+\begin{equation}
+  \lambda_1(k)
+  \uparrow
+  \quad\Longrightarrow\quad
+  \eta\lambda_1(k)\approx2
+  \quad\Longrightarrow\quad
+  \text{oscillatory but long-term decreasing loss}.
+\end{equation}
+
+\section{gradient flow trajectory와의 관계}
+
+논문은 여러 네트워크에서 GD가 처음에는 GF trajectory를 가까이 따라가다가,
+그 trajectory 상에서 sharpness가 $2/\eta$에 도달하는 시점 부근에서 이탈하는 것을 관측한다.
+시간축을 맞추려면 GD iteration $k$를 GF time
+\begin{equation}
+  t=k\eta
+\end{equation}
+로 바꾼다.
+
+GF trajectory의 초기 sharpness를 $\lambda_0$, 그 trajectory에서 도달하는 최대 sharpness를
+$\lambda_{\max}^{\mathrm{GF}}$라고 쓰면, 논문의 경험적 그림은 다음처럼 이해할 수 있다.
+
+\begin{itemize}
+  \item $\eta<2/\lambda_{\max}^{\mathrm{GF}}$라면 GF 경로를 따라가는 동안 threshold를 만나지 않는다.
+  \item $2/\lambda_{\max}^{\mathrm{GF}}\le\eta\le2/\lambda_0$라면 처음에는 GF를 추적하지만,
+  GF 경로의 sharpness가 $2/\eta$에 도달하는 부근에서 finite-step instability가 나타난다.
+\end{itemize}
+
+\begin{warningbox}[--- 이것을 보편 정리처럼 말하면 안 된다]
+Cohen et al.의 핵심은 광범위한 \textbf{empirical observation}이다.
+모든 architecture에서 GD가 GF를 정밀하게 추적한다는 정리가 아니다.
+논문 부록의 WikiText-2 Transformer 실험에서는 EoS 형태의 sharpness 현상은 관찰하지만,
+초기 GD trajectory가 GF trajectory를 가깝게 따라간다는 패턴은 관찰되지 않았다고 명시한다.
+\end{warningbox}
+
+\section{``progressive sharpening''이 왜 EoS를 피하기 어렵게 만드는가}
+
+고정 learning rate $\eta$를 쓴다고 하자.
+초기에는
+\begin{equation}
+  \lambda_1(0)<\frac{2}{\eta}
+\end{equation}
+여도, 학습 중
+\begin{equation}
+  \lambda_1(k)\uparrow
+\end{equation}
+하면 결국
+\begin{equation}
+  \lambda_1(k)\approx\frac{2}{\eta}
+\end{equation}
+에 도달할 수 있다.
+즉 ``초기 Hessian만 보고 안정한 learning rate를 정한다''는 논리가 깨진다.
+
+\section{learning-rate drop 실험의 의미}
+
+EoS에서
+\begin{equation}
+  \lambda_1\approx\frac{2}{\eta_{\text{old}}}
+\end{equation}
+라고 하자. learning rate를 줄여
+\begin{equation}
+  \eta_{\text{new}}<\eta_{\text{old}}
+\end{equation}
+로 만들면 새로운 stability threshold는
+\begin{align}
+  \frac{2}{\eta_{\text{new}}}
+  &>\frac{2}{\eta_{\text{old}}}\\
+  &\approx\lambda_1.
+\end{align}
+즉 현재점이 다시 threshold 아래로 들어간다. Cohen et al.에서는 이 뒤 sharpness가 다시 상승하고,
+새로운 $2/\eta_{\text{new}}$ 부근에서 멈추는 현상을 관찰한다.
+
+\begin{keybox}
+이 실험은 ``sharpness가 우연히 plateau한다''보다 강한 힌트를 준다.
+plateau 위치가 learning rate에 따라 이동하기 때문이다.
+즉 training dynamics가 $\eta\lambda_1\approx2$라는 discretization scale과 결합되어 있다.
+\end{keybox}
+
+\section{EoS는 classical quadratic stability와 모순인가?}
+
+아니다. 정확히는 다음 둘을 구분해야 한다.
+
+\begin{enumerate}
+  \item \textbf{고정 quadratic:} $H$가 변하지 않는다. $\eta\lambda_1>2$면 top mode가 기하급수적으로 발산한다.
+  \item \textbf{neural loss:} iterate가 움직일 때 gradient, Hessian, eigenvector가 모두 변한다.
+  local quadratic의 unstable direction으로 overshoot해도 다음 step의 landscape는 달라진다.
+\end{enumerate}
+
+따라서 EoS는 quadratic 분석이 ``틀렸다''는 뜻이 아니라,
+quadratic의 local instability가 실제 비선형 landscape에서 어떤 장기 동역학으로 조직되는지가 새로운 문제라는 뜻이다.
+
+\section{LLM/Transformer 발표에서의 안전한 해석}
+
+\Needspace{9\baselineskip}
+\begin{warningbox}
+Cohen et al.의 대표 결과는 \textbf{full-batch deterministic GD}에 관한 것이다.
+실제 대규모 LLM은 minibatch SGD 계열, Adam/AdamW, warmup, decay, normalization 등을 사용한다.
+따라서 ``LLM도 항상 sharpness $=2/\eta$에서 학습한다''고 일반화하면 안 된다.
+세미나에서는 EoS를 \textbf{finite-step optimization dynamics를 이해하기 위한 canonical phenomenon}으로 소개하는 것이 정확하다.
+\end{warningbox}
+
+\section{논문에서 하지 않은 주장}
+
+Cohen et al.은 이 논문에서 sharpness를
+\begin{equation}
+  \lambda_{\max}(\Hess\Loss)
+\end{equation}
+로 엄격히 정의하며, 이 양과 generalization 사이의 직접적 관계를 주장하지 않는다.
+따라서 발표에서도 ``EoS가 flatter minima를 찾아서 generalization이 좋아진다''를 Cohen et al.의 결론처럼 말하면 안 된다.
+
+\begin{presentbox}
+``Cohen et al.의 놀라운 관측은, sharpness가 $2/\eta$를 넘으면 quadratic 모델상 불안정해야 하는데 실제 neural loss에서는
+학습이 완전히 발산하지 않는다는 것입니다. 대신 sharpness는 그 경계 근처에 고정되고 loss는 짧게는 진동하지만 길게는 감소합니다.
+그리고 learning rate를 낮추면 경계 $2/\eta$가 위로 이동하고 sharpness가 다시 올라갑니다. 즉 plateau 위치가 learning rate와 직접 결합되어 있습니다.''
+\end{presentbox}
+
+% ================================================================
+\chapter{Arora--Li--Panigrahi (2022): EoS를 수학적으로 모델링하기}
+% ================================================================
+
+\section{왜 현재점의 sharpness만으로는 부족한가?}
+
+Arora et al.은 한 GD step이 실제로 지나가는 선분 위의 curvature를 반영하기 위해
+다음 \textbf{stableness}를 정의한다.
+
+\begin{definition}[Stableness]
+Loss $L$, 점 $x$, learning rate $\eta>0$에 대해
+\begin{equation}
+  S_L(x,\eta)
+  :=\eta\sup_{0\le s\le\eta}
+  \lambda_1\!\left(\Hess L(x-s\grad L(x))\right).
+  \label{eq:stableness}
+\end{equation}
+$S_L(x,\eta)\le2$이면 stable, 그렇지 않으면 unstable이라 부른다.
+\end{definition}
+
+현재점 하나에서의 $\eta\lambda_1(\Hess L(x))$가 아니라,
+한 step segment
+\begin{equation}
+  \{x-s\grad L(x):0\le s\le\eta\}
+\end{equation}
+전체를 본다는 점이 중요하다.
+
+\begin{suppbox}[--- 왜 이 정의에서 정확히 2가 나오는가]
+$g=\grad L(x)$라 두고 $\psi(s)=L(x-sg)$를 정의한다. 그러면
+\begin{align}
+  \psi'(s)&=-g^\top\grad L(x-sg),\\
+  \psi''(s)&=g^\top\Hess L(x-sg)g.
+\end{align}
+Taylor의 적분형 나머지를 쓰면
+\begin{align}
+  L(x-\eta g)
+  &=L(x)+\eta\psi'(0)+\int_0^\eta(\eta-s)\psi''(s)\,ds\\
+  &=L(x)-\eta\norm g^2
+  +\int_0^\eta(\eta-s)
+  g^\top\Hess L(x-sg)g\,ds.
+\end{align}
+최대 고유값으로 상계하면
+\begin{align}
+  L(x-\eta g)
+  &\le L(x)-\eta\norm g^2
+  +\sup_{0\le s\le\eta}\lambda_1(\Hess L(x-sg))
+  \norm g^2\int_0^\eta(\eta-s)\,ds\\
+  &=L(x)-\eta\norm g^2
+  +\frac{\eta^2}{2}
+  \sup_{0\le s\le\eta}\lambda_1(\Hess L(x-sg))\norm g^2\\
+  &=L(x)-\eta\left(1-\frac{S_L(x,\eta)}{2}\right)\norm g^2.
+\end{align}
+따라서 $S_L(x,\eta)<2$면 그 step의 loss decrease가 보장된다.
+이 계산은 논문의 Definition 1.1 뒤에 있는 local descent-lemma 직관을 풀어 쓴 것이다.
+\end{suppbox}
+
+\section{EoS를 만드는 두 메커니즘}
+
+논문은 적어도 두 설정에서 EoS를 엄밀히 분석한다.
+
+\subsection{메커니즘 A: Normalized GD의 effective learning rate 폭증}
+
+Normalized GD는
+\begin{equation}
+  x_{k+1}
+  =x_k-\eta\frac{\grad L(x_k)}{\norm{\grad L(x_k)}}.
+  \label{eq:ngd}
+\end{equation}
+이를 일반 GD처럼 다시 쓰면
+\begin{align}
+  x_{k+1}
+  &=x_k-\eta_k^{\mathrm{eff}}\grad L(x_k),\\
+  \eta_k^{\mathrm{eff}}
+  &:=\frac{\eta}{\norm{\grad L(x_k)}}.
+\end{align}
+최소점에 접근하여
+\begin{equation}
+  \norm{\grad L(x_k)}\to0
+\end{equation}
+이면
+\begin{equation}
+  \boxed{\eta_k^{\mathrm{eff}}\to\infty.}
+\end{equation}
+즉 $L$ 자체가 smooth해도 알고리즘이 자동으로 effective step size를 키워 안정성 경계에 부딪힐 수 있다.
+
+\subsection{메커니즘 B: \texorpdfstring{$\sqrt{L}$}{sqrt(L)}가 최소점 근처에서 non-smooth해짐}
+
+$L\ge0$이고 최소값이 0이라 하자. 새로운 목적함수
+\begin{equation}
+  \widetilde L(x)=\sqrt{L(x)}
+\end{equation}
+를 생각한다. $L(x)>0$인 곳에서
+\begin{align}
+  \grad\widetilde L(x)
+  &=\grad\!\left(L(x)^{1/2}\right)\\
+  &=\frac{1}{2\sqrt{L(x)}}\grad L(x).
+\end{align}
+한 번 더 미분하면
+\begin{align}
+  \Hess\widetilde L(x)
+  &=\frac{1}{2\sqrt{L}}\Hess L
+   +\grad\!\left(\frac{1}{2\sqrt L}\right)(\grad L)^\top\\
+  &=\frac{1}{2\sqrt L}\Hess L
+   -\frac{1}{4L^{3/2}}\grad L\grad L^\top\\
+  &=\boxed{\frac{2L\Hess L-\grad L\grad L^\top}{4L^{3/2}}}.
+  \label{eq:sqrt-hessian}
+\end{align}
+$L\to0$이면 denominator가 $L^{3/2}$로 사라지므로 curvature가 커질 수 있다.
+논문은 적절한 rank 조건 아래 최소점에 접근할 때 이 Hessian의 발산을 이용한다.
+
+\begin{keybox}
+두 메커니즘은 겉보기에는 다르지만 공통 구조가 있다.
+minimum 근처에서는 ``step size $\times$ curvature''가 더 이상 작은 무차원량으로 유지되지 않는다.
+Normalized GD에서는 effective step이 커지고, $\sqrt L$에서는 effective curvature가 커진다.
+\end{keybox}
+
+\section{최소점 하나가 아니라 manifold를 본다}
+
+과매개변수화 문제에서는 최소점이 고립된 점 하나가 아니라 manifold를 이룰 수 있다.
+논문은
+\begin{equation}
+  \Gamma=\{x:L(x)=0\}
+\end{equation}
+를 $(D-M)$차원 local-minimizer manifold로 가정하고, $x\in\Gamma$에서
+\begin{equation}
+  \rank(\Hess L(x))=M
+\end{equation}
+을 가정한다.
+즉 Hessian의 $M$개 normal direction에는 curvature가 있고,
+manifold를 따라가는 tangent direction에는 zero modes가 존재하는 그림이다.
+
+\subsection{GF limiting map \texorpdfstring{$\Phi$}{Phi}}
+
+GF를
+\begin{equation}
+  \phi(x,\tau)
+  =x-\int_0^\tau \grad L(\phi(x,s))\,ds
+\end{equation}
+라고 하고, GF가 $\Gamma$로 수렴하는 neighborhood $U$에서
+\begin{equation}
+  \boxed{\Phi(x):=\lim_{\tau\to\infty}\phi(x,\tau)\in\Gamma}
+\end{equation}
+를 정의한다.
+즉 $\Phi(x)$는 ``현재점 $x$에서 infinitesimal-step GF만 계속 돌렸을 때 도착하는 최소점''이다.
+
+\begin{paperbox}[--- projection notation]
+Arora et al.은 $P_{x,\Gamma}$를 \textbf{normal space}로의 projection,
+$P_{x,\Gamma}^{\perp}=I-P_{x,\Gamma}$를 \textbf{tangent space}로의 projection으로 쓴다.
+일반적인 직관과 기호가 헷갈릴 수 있으므로 발표에서는
+\[
+  P_{\T}(x):=P_{x,\Gamma}^{\perp}
+\]
+라고 다시 이름 붙여 설명하는 것이 안전하다.
+\end{paperbox}
+
+\section{두 시간축: Phase I과 Phase II}
+
+Arora et al.의 핵심 구조는 두 개의 서로 다른 time scale이다.
+
+\subsection{Phase I: GF를 따라 minimum manifold로 접근}
+
+작은 $\eta$에서 대략
+\begin{equation}
+  k=\Theta(\eta^{-1})
+\end{equation}
+개의 step 동안 움직인다. Normalized GD의 연속시간 변수는
+\begin{equation}
+  \tau=k\eta=\Theta(1)
+\end{equation}
+로 잡는 것이 정확하다. 이 극한은
+\begin{equation}
+  \frac{dx}{d\tau}=-\frac{\grad L(x)}{\norm{\grad L(x)}}
+\end{equation}
+인 \textbf{normalized gradient flow}이다. 이 flow는 표준 GF
+$\dot x=-\grad L(x)$와 같은 궤적을 지나지만 속도, 즉 time parametrization은 다르다.
+따라서 이 구간에서 iterate는 GF \textbf{경로}를 따라 $\Gamma$의 $O(\eta)$ 근방까지 접근한다고 이해하면 된다.
+
+\subsection{Phase II: 빠른 진동 + 느린 tangent drift}
+
+$\Gamma$ 근방에 도달하면 normal direction, 특히 top-curvature direction으로 overshoot가 반복된다.
+한편 $\Phi(x_k)$의 tangent movement는 한 step에 $O(\eta^2)$ 규모이므로,
+$O(1)$ 크기의 tangent 이동을 보기 위해서는
+\begin{equation}
+  k=\Theta(\eta^{-2})
+\end{equation}
+step이 필요하다. 따라서 slow time을
+\begin{equation}
+  \tau=k\eta^2
+\end{equation}
+로 잡는다.
+
+\begin{keybox}
+\[
+\boxed{\text{Phase I: } k\sim\eta^{-1}}
+\qquad\qquad
+\boxed{\text{Phase II: } k\sim\eta^{-2}}
+\]
+Phase II에서는 매 step의 큰 oscillation과, 여러 step을 평균냈을 때 보이는 작은 drift를 분리해서 봐야 한다.
+\end{keybox}
+
+\section{limiting flow: EoS가 sharpness를 낮추는 방향으로 움직인다}
+
+Top Hessian eigenvalue를
+\begin{equation}
+  \lambda_1(x):=\lambda_1(\Hess L(x)),\qquad x\in\Gamma
+\end{equation}
+라고 하자. top eigenvalue가 simple하다는 등의 regularity 조건 아래,
+논문의 Phase-II limiting flow는 다음 형태다.
+
+\subsection{Normalized GD}
+
+\begin{equation}
+  \boxed{
+  \frac{dX}{d\tau}
+  =-\frac14 P_{\T}(X)\grad\log\lambda_1(X)
+  }
+  \label{eq:ngd-limit-flow}
+\end{equation}
+즉 manifold 위에서 $\log\lambda_1$의 Riemannian gradient flow다.
+논문식 적분형은
+\begin{equation}
+  X(\tau)=\Phi(x_{\mathrm{init}})
+  -\frac14\int_0^\tau
+  P^{\perp}_{X(s),\Gamma}\grad\log\lambda_1(X(s))\,ds.
+\end{equation}
+
+\subsection{GD on \texorpdfstring{$\sqrt L$}{sqrt(L)}}
+
+\begin{equation}
+  \boxed{
+  \frac{dX}{d\tau}
+  =-\frac18 P_{\T}(X)\grad\lambda_1(X)
+  }
+  \label{eq:sqrt-limit-flow}
+\end{equation}
+즉 manifold 위에서 sharpness $\lambda_1$ 자체를 줄이는 gradient flow다.
+
+\begin{suppbox}[--- limiting flow가 정말 sharpness를 감소시키는지 한 줄씩 확인]
+Normalized GD의 경우 $q(X)=\log\lambda_1(X)$라 두면
+\begin{align}
+  \frac{d}{d\tau}q(X(\tau))
+  &=\inner{\grad q(X)}{\dot X}\\
+  &=\inner{\grad q(X)}{-\tfrac14P_{\T}(X)\grad q(X)}\\
+  &=-\frac14\inner{\grad q}{P_{\T}\grad q}\\
+  &=-\frac14\norm{P_{\T}\grad q}^2\\
+  &\le0.
+\end{align}
+마지막 줄은 $P_{\T}$가 orthogonal projection이기 때문이다.
+
+GD on $\sqrt L$에서는 같은 계산으로
+\begin{align}
+  \frac{d}{d\tau}\lambda_1(X(\tau))
+  &=\inner{\grad\lambda_1}{-\tfrac18P_{\T}\grad\lambda_1}\\
+  &=-\frac18\norm{P_{\T}\grad\lambda_1}^2\\
+  &\le0.
+\end{align}
+따라서 ``EoS의 느린 평균 동역학이 flatter part of the minimum manifold로 이동한다''는 말을
+정확히 수식으로 표현할 수 있다.
+\end{suppbox}
+
+\section{논문의 toy loss로 직접 확인하기}
+
+논문 Figure 1의 예시는
+\begin{equation}
+  L(x,y)=(1+x^2)y^2
+\end{equation}
+이다. zero-loss manifold는
+\begin{equation}
+  \Gamma=\{(x,0):x\in\R\}.
+\end{equation}
+
+\begin{suppbox}[--- Figure 1 toy example의 Hessian 계산]
+먼저 gradient는
+\begin{align}
+  \frac{\partial L}{\partial x}&=2xy^2,\\
+  \frac{\partial L}{\partial y}&=2(1+x^2)y.
+\end{align}
+따라서 Hessian은
+\begin{equation}
+  \Hess L(x,y)
+  =\begin{pmatrix}
+  2y^2 & 4xy\\
+  4xy & 2(1+x^2)
+  \end{pmatrix}.
+\end{equation}
+$\Gamma$ 위, 즉 $y=0$에서는
+\begin{equation}
+  \Hess L(x,0)
+  =\begin{pmatrix}
+  0&0\\
+  0&2(1+x^2)
+  \end{pmatrix}.
+\end{equation}
+따라서
+\begin{equation}
+  \lambda_1(x,0)=2(1+x^2).
+\end{equation}
+이는 $x=0$에서 최소다. 즉 EoS의 slow tangent drift가 $|x|$를 줄이는 방향이라는 논문의 그림과 정확히 맞는다.
+
+예를 들어 GD on $\sqrt L$의 limiting flow를 대입하면
+\begin{align}
+  \frac{dx}{d\tau}
+  &=-\frac18\frac{d}{dx}\bigl[2(1+x^2)\bigr]\\
+  &=-\frac18(4x)\\
+  &=-\frac12x,
+\end{align}
+따라서
+\begin{equation}
+  x(\tau)=x(0)e^{-\tau/2}\to0.
+\end{equation}
+이 마지막 ODE 해는 설명을 위한 보충 계산이다.
+\end{suppbox}
+
+\section{``implicit regularization''이라는 말의 정확한 의미}
+
+여기서 explicit objective는 여전히 $L$ 또는 $\sqrt L$이다. 하지만 finite-step GD가 EoS에 들어가면,
+빠른 oscillation을 평균낸 느린 dynamics는 minimum manifold 위에서 별도의 양
+\begin{equation}
+  \lambda_1(\Hess L)
+  \quad\text{또는}\quad
+  \log\lambda_1(\Hess L)
+\end{equation}
+을 낮추는 흐름으로 나타난다.
+즉 loss가 이미 최소인 점들 사이에서도 알고리즘 자체가 특정 해를 선호한다.
+이것이 이 문맥의 implicit regularization이다.
+
+\begin{warningbox}[--- 이론의 적용 범위]
+Arora et al.의 정리는 일반적인 모든 deep net + 일반 GD에 대한 완전한 EoS 이론이 아니다.
+핵심 rigorous setting은 (i) Normalized GD on smooth $L$, (ii) constant-step GD on $\sqrt{L-L_{\min}}$이고,
+minimum manifold의 smoothness, Hessian rank, top-eigenvalue gap 등 regularity assumption을 둔다.
+Phase-II 증명에는 기술적으로 매우 작은 perturbation도 도입한다. 논문은 실제 실험에서는 deterministic GD에서도 예측이 맞는다고 보고한다.
+\end{warningbox}
+
+\begin{presentbox}
+``Arora et al.의 핵심은 EoS 진동 자체보다 그 진동의 평균 효과입니다. 먼저 $O(1/\eta)$ step 동안 GF처럼 minimum manifold에 접근합니다.
+그 다음에는 top-curvature normal direction으로 빠르게 왕복하지만, 매 step $O(\eta^2)$만큼 manifold의 tangent direction으로 drift합니다.
+그래서 $O(1/\eta^2)$ step의 느린 시간축에서 보면 이 drift가 sharpness를 줄이는 gradient flow로 수렴합니다.''
+\end{presentbox}
+
+% ================================================================
+\chapter{Gradient Flow와 EoS를 하나의 그림으로 연결하기}
+% ================================================================
+
+\section{세 가지 dynamics를 분리해서 보자}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.17\textwidth} >{\raggedright\arraybackslash}p{0.25\textwidth} >{\raggedright\arraybackslash}p{0.22\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Regime & 지배 방정식 & 핵심 안정성 & 관찰되는 현상 \\
+\midrule
+Gradient Flow & $\dot x=-\grad L(x)$ & finite-step threshold 없음 & $L$이 연속적으로 감소 \\
+Stable plain GD & $x_{k+1}=x_k-\eta\grad L(x_k)$ & local quadratic에서 $\eta\lambda_1<2$ & GF를 근사할 수 있음 \\
+Cohen의 EoS & fixed-step plain GD, $\eta\lambda_1\approx2$ & local quadratic marginal/unstable & 빠른 oscillation + 느린 장기 progress \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{왜 ``GF가 GD의 근사''라는 말이 EoS에서는 실패하는가}
+
+정확한 GF 해를 한 step 길이 $\eta$만큼 Taylor-expand해 보자. $g=\grad L(x(t))$, $H=\Hess L(x(t))$라 쓰면
+\begin{align}
+  \dot x(t)&=-g,\\
+  \ddot x(t)&=-H\dot x(t)=Hg,
+\end{align}
+이므로, 충분한 매끄러움 아래
+\begin{equation}
+  x(t+\eta)
+  =x(t)-\eta g+\frac{\eta^2}{2}Hg+O(\eta^3).
+\end{equation}
+반면 한 번의 GD/Euler step은 $x(t)-\eta g$까지만 취한다. 따라서 leading correction과 Euler step의 크기 비는 대략
+\begin{equation}
+  \frac{\left\|\frac{\eta^2}{2}Hg\right\|}{\|\eta g\|}
+  \le \frac{\eta}{2}\|H\|.
+\end{equation}
+즉 $\eta$ 자체보다 중요한 양은 curvature와 결합된 $\eta\|H\|$이다. 특히 top mode가 지배하면 이를
+$\eta\lambda_1$로 읽을 수 있다. $\lambda_1=O(1/\eta)$이면 이 보정항은 leading step과 같은 차수가 되어
+GF 근사가 더 이상 uniform하게 작다고 볼 수 없다.
+
+\begin{keybox}
+``small learning rate''는 절대적인 개념이 아니다. Plain GD의 local quadratic picture에서는
+\[
+  \eta\lambda_1\ll1
+\]
+일 때 GF 근사가 가장 자연스럽다. Cohen et al.이 관찰한 fixed-step plain GD의 EoS는 이 곱이 $2$ 근처에 이르는 regime이다.
+Normalized GD나 GD on $\sqrt L$에서는 같은 내용을 단순히 현재점의 $\eta\lambda_1$ 하나로 표현하지 않고,
+effective step 또는 path-wise stableness를 사용해야 한다.
+\end{keybox}
+
+\section{EoS의 period-2 구조를 local eigenmode로 읽기}
+
+Top Hessian eigenvector $v_1$ 방향 좌표를 $z_k$라고 하자. local quadratic approximation에서는
+\begin{equation}
+  z_{k+1}\approx(1-\eta\lambda_1)z_k.
+\end{equation}
+EoS에서
+\begin{equation}
+  \eta\lambda_1\approx2
+\end{equation}
+이므로
+\begin{equation}
+  1-\eta\lambda_1\approx-1.
+\end{equation}
+따라서
+\begin{align}
+  z_{k+1}&\approx-z_k,\\
+  z_{k+2}&\approx z_k.
+\end{align}
+이것이 2-step oscillation이 자연스럽게 등장하는 가장 간단한 이유다.
+
+\begin{suppbox}[--- 왜 2-step 평균을 자주 보는가]
+한 step에서는 $z_k\mapsto-z_k$라는 큰 변화가 있어도 두 step 뒤에는 normal coordinate가 거의 원상복구될 수 있다.
+그러면 $x_{k+2}-x_k$에는 빠른 normal oscillation이 상쇄되고 $O(\eta^2)$의 작은 tangent drift가 남는다.
+Arora et al.의 Phase-II 분석에서 두 step 단위 평균과 $\eta^{-2}$ time scale이 자연스러운 이유를 이 그림으로 기억하면 된다.
+\end{suppbox}
+
+\section{GF endpoint와 finite-step solution selection}
+
+GF만 보면 초기점 $x$는
+\begin{equation}
+  x\longmapsto\Phi(x)\in\Gamma
+\end{equation}
+로 간다. 그러나 finite-step EoS dynamics는 $\Phi(x)$에 도착한 뒤 멈추는 대신,
+$\Gamma$ 근처에서 oscillation하며
+\begin{equation}
+  \Phi(x_k)
+\end{equation}
+자체를 천천히 움직일 수 있다.
+
+따라서 conceptual decomposition은
+\begin{equation}
+  \boxed{
+  \text{fast attraction to }\Gamma
+  \quad+\quad
+  \text{fast normal oscillation}
+  \quad+\quad
+  \text{slow tangent drift}
+  }
+\end{equation}
+이다.
+
+\section{발표에서 자주 나올 질문}
+
+\subsection*{Q1. $\lambda_1>2/\eta$면 왜 발산하지 않나요?}
+고정 quadratic라면 발산한다. 실제 neural loss는 iterate와 함께 Hessian이 바뀌므로 local instability가 장기 발산을 강제하지 않는다.
+EoS는 바로 그 비선형 피드백이 만들어내는 동역학이다.
+
+\subsection*{Q2. EoS와 chaos는 같은 말인가요?}
+아니다. Cohen et al.의 fixed-step plain GD에서는 $\eta\lambda_1\approx2$ 부근의 oscillatory finite-step regime이 대표적인 EoS 모습이다.
+Arora et al.의 특수 설정에서는 현재점의 $\eta\lambda_1$ 대신 알고리즘에 맞는 stableness를 보며,
+빠른 oscillation을 평균하면 결정론적인 limiting flow가 나타난다.
+
+\subsection*{Q3. sharpness가 작을수록 generalization이 좋은가요?}
+이 세미나 범위의 두 핵심 논문만으로 그렇게 결론내리면 안 된다. Cohen et al.은 자신들이 쓰는 sharpness와 generalization의 연결을 주장하지 않는다.
+
+\subsection*{Q4. Adam에서도 $2/\eta$인가요?}
+그대로 아니다. $2/\eta$는 plain GD의 quadratic stability에서 나온다. preconditioning, momentum, adaptive step은 stability polynomial 자체를 바꾼다.
+Cohen et al.도 momentum의 maximum stable sharpness가 다른 식을 따른다고 분석한다.
+
+\subsection*{Q5. 그럼 GF는 실전 학습을 설명하는 데 쓸모가 없나요?}
+아니다. Stable regime, 초기 dynamics, implicit bias 분석에서 여전히 핵심 baseline이다.
+다만 EoS처럼 finite-step effect가 지배적인 구간에서는 GF만으로 설명할 수 없다는 것이 포인트다.
+
+\begin{presentbox}
+``정리하면 GF는 loss landscape의 연속시간 기하를 보여주고, EoS는 discretization이 그 기하와 강하게 상호작용할 때 생깁니다.
+초기에는 GD가 GF를 따라갈 수 있지만 progressive sharpening 때문에 $\eta\lambda_1$이 2에 접근하면 top mode가 거의 부호 반전하는 period-2 mode가 됩니다.
+그 빠른 진동을 평균하면 최소점 manifold를 따라 sharpness를 줄이는 느린 흐름이 나타날 수 있습니다.''
+\end{presentbox}
+
+% ================================================================
+\chapter{발표 준비용 압축 정리}
+% ================================================================
+
+\section{칠판에 반드시 남길 8개 식}
+
+\begin{enumerate}
+  \item GD:
+  \[
+    \boxed{x_{k+1}=x_k-\eta\grad L(x_k)}
+  \]
+
+  \item GF:
+  \[
+    \boxed{\dot x=-\grad L(x)}
+  \]
+
+  \item GF energy identity:
+  \[
+    \boxed{\frac{d}{dt}L(x(t))=-\norm{\grad L(x(t))}^2\le0}
+  \]
+
+  \item 1D quadratic mode:
+  \[
+    \boxed{e_{k+1}=(1-\eta\lambda)e_k}
+  \]
+
+  \item GD stability threshold:
+  \[
+    \boxed{\eta\lambda_{\max}<2}
+  \]
+
+  \item Cohen et al.의 fixed-step plain GD에서의 EoS empirical condition:
+  \[
+    \boxed{\lambda_1(\Hess L)\approx\frac{2}{\eta}}
+  \]
+
+  \item Arora et al. stableness:
+  \[
+    \boxed{S_L(x,\eta)=\eta\sup_{0\le s\le\eta}
+    \lambda_1\left(\Hess L(x-s\grad L(x))\right)}
+  \]
+
+  \item Phase-II limiting flows:
+  \[
+  \boxed{
+  \dot X=-\frac14P_{\T}\grad\log\lambda_1
+  \quad\text{or}\quad
+  \dot X=-\frac18P_{\T}\grad\lambda_1
+  }
+  \]
+\end{enumerate}
+
+\section{발표 순서 추천}
+
+\begin{enumerate}
+  \item \textbf{1D quadratic}로 $2/\eta$를 먼저 유도한다.
+  \item 그 다음 GF를 보여주며 ``continuous time에는 이 instability가 없다''고 대비한다.
+  \item Cohen et al.의 progressive sharpening $\to$ EoS 관측을 소개한다.
+  \item ``왜 안 터지고 계속 학습되지?''를 질문으로 던진다.
+  \item Arora et al.의 manifold + two-time-scale 그림으로 답한다.
+  \item 마지막에 ``finite step 자체가 implicit regularizer가 될 수 있다''로 마무리한다.
+\end{enumerate}
+
+\section{흔한 실수 체크리스트}
+
+\begin{itemize}
+  \item[$\square$] $2/\eta$를 GF stability threshold라고 말하지 않았는가? 
+  \item[$\square$] oscillation($\eta\lambda>1$)과 divergence($\eta\lambda>2$)를 구분했는가?
+  \item[$\square$] current-point sharpness와 path-wise stableness를 구분했는가?
+  \item[$\square$] Cohen et al.의 empirical observation과 Arora et al.의 rigorous special setting을 구분했는가?
+  \item[$\square$] $P^\perp_{x,\Gamma}$가 Arora 표기에서는 tangent projection임을 확인했는가?
+  \item[$\square$] Phase I의 $\eta^{-1}$ scale과 Phase II의 $\eta^{-2}$ scale을 구분했는가?
+  \item[$\square$] EoS 결과를 Adam/SGD/실제 LLM에 무조건 일반화하지 않았는가?
+  \item[$\square$] sharpness와 generalization의 직접 관계를 이 두 논문의 결론처럼 말하지 않았는가?
+\end{itemize}
+
+\section{30초 결론}
+
+\begin{keybox}
+Gradient flow는 GD의 infinitesimal-step limit이며 loss를 항상 감소시킨다.
+고정 quadratic, 또는 Hessian을 한 step 동안 고정한 local model에서는 각 eigenmode가
+$1-\eta\lambda_i$의 multiplier를 가지므로 $\eta\lambda_1\approx2$에서 period-2 경계가 나타난다.
+Cohen et al.의 fixed-step plain GD 실험에서는 progressive sharpening 때문에 neural network가 이 경계에 실제로 도달하고,
+그 뒤에도 완전히 발산하지 않고 장기적으로 loss를 줄이는 EoS가 관측된다.
+특정 이론적 설정에서는 이 빠른 oscillation의 평균 효과가 최소점 manifold를 따라
+sharpness를 낮추는 느린 gradient flow로 수렴한다.
+\end{keybox}
+
+\begin{presentbox}
+``Gradient flow는 learning rate를 0으로 보낸 이상적인 baseline이고, Edge of Stability는 finite step이 landscape의 curvature와 강하게 상호작용할 때 나타나는 현상입니다.
+Cohen et al.의 fixed-step plain GD에서는 핵심 무차원량이 $\eta\lambda_1$이고, 이것이 2에 가까워지면 top-curvature 방향이 거의 period-2로 진동합니다.
+Arora et al.의 특수 설정에서는 그 빠른 진동을 평균한 느린 dynamics가 minimum manifold 위의 solution selection을 만들 수 있습니다.''
+\end{presentbox}
+
+% ================================================================
+\chapter*{참고문헌 및 원문에서 확인할 위치}
+\addcontentsline{toc}{chapter}{참고문헌 및 원문에서 확인할 위치}
+% ================================================================
+
+\begin{enumerate}
+  \item Jeremy M. Cohen, Simran Kaur, Yuanzhi Li, J. Zico Kolter, Ameet Talwalkar.
+  ``Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability''.
+  ICLR 2021.\\
+  \url{https://arxiv.org/abs/2103.00065}\\
+  특히 Section 2 (quadratic stability), Section 3 (progressive sharpening / EoS),
+  Appendix J (Transformer on WikiText-2)을 확인할 것.
+
+  \item Sanjeev Arora, Zhiyuan Li, Abhishek Panigrahi.
+  ``Understanding Gradient Descent on the Edge of Stability in Deep Learning''.
+  ICML 2022, PMLR 162.\\
+  \url{https://proceedings.mlr.press/v162/arora22a.html}\\
+  특히 Definition 1.1 (stableness), Section 4.1--4.5 (GF map, manifold assumptions,
+  Phase I/II, limiting flow, EoS theorem)을 확인할 것.
+\end{enumerate}
+
+\begin{warningbox}[--- 원문과 이 노트의 경계]
+``보충 유도'' 박스의 계산은 발표 이해를 위해 원 논문의 정의와 결과에서 직접 전개한 설명이다.
+정리의 모든 기술적 가정과 확률적 오차항을 재현한 완전한 proof note는 아니다.
+발표에서 theorem statement를 엄밀히 인용해야 할 경우에는 위 원문의 해당 theorem을 그대로 확인할 것.
+\end{warningbox}
+
+\end{document}

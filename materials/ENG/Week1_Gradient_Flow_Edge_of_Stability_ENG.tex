@@ -1,0 +1,492 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar -- English Study Notes
+% Compile with:
+%   xelatex FILENAME.tex
+%   xelatex FILENAME.tex
+% or: latexmk -xelatex FILENAME.tex
+% =====================================================================
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[unicode,bookmarks=false]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\hypersetup{colorlinks=true,linkcolor=NoteBlue,citecolor=NoteBlue,urlcolor=NoteBlue}
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{}{\footnotesize Gradient Flow \& Edge of Stability}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+\makechapterstyle{seminarnotes}{
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\grad}{\nabla}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Tr}{Tr}
+\tcbset{seminarbox/.style={enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,fonttitle=\bfseries\small,coltitle=black,attach title to upper={\quad}}}
+\newtcolorbox{keybox}[1][]{seminarbox,colback=NoteBlueLight,borderline west={1.8pt}{0pt}{NoteBlue},title={Key point#1}}
+\newtcolorbox{paperbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={From the original paper#1}}
+\newtcolorbox{suppbox}[1][]{seminarbox,colback=NoteWarmLight,borderline west={1.8pt}{0pt}{NoteWarm},title={Supplementary derivation#1}}
+\newtcolorbox{warningbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={Caution#1}}
+\newtcolorbox{presentbox}{seminarbox,colback=white,borderline west={2.2pt}{0pt}{black!70},fontupper=\footnotesize,top=1.2mm,bottom=1.2mm,before={\par},before skip=0.5em,after skip=0.5em,title={How to say it in the presentation}}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\begin{document}
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 1\par}
+\vspace{1.4cm}
+{\HUGE\bfseries Gradient Flow and\\[0.18em]Edge of Stability\par}
+\vspace{0.55cm}
+{\large English seminar study notes\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+\begin{minipage}{0.86\textwidth}
+\small
+These notes are an English companion to the seminar handout.  The emphasis is on
+mathematical derivations that can be followed line by line, on separating theorem
+statements from interpretation, and on identifying the assumptions under which each
+claim is valid.
+\end{minipage}
+\vfill
+{\small\textbf{Primary readings}\\[0.25em]
+Cohen et al., \textbf{Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability}, ICLR 2021.\\Arora, Li, Panigrahi, \textbf{Understanding Gradient Descent on the Edge of Stability in Deep Learning}, ICML 2022.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+\tableofcontents*
+\clearpage
+
+\chapter{Notation and the big picture}
+
+\section{Notation map}
+Different papers use different symbols for the same objects.  We use $\theta$ or $x$ for parameters, $\mathcal L$ for the objective, $\eta$ for the discrete step size, and $t$ for continuous time.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.19\textwidth} *{4}{>{\raggedright\arraybackslash}X}}
+\toprule
+Concept & These notes & ODE/numerics & Cohen et al. & Arora et al.\\
+\midrule
+parameters & $\theta$ or $x$ & $x(t)$ & $x_t$ & $x,x_\eta(t)$\\
+objective & $\mathcal L$ & $F,E$ & $f$ & $L$\\
+step size & $\eta$ & $h$ & $\eta$ & $\eta$\\
+continuous time & $t$ & $t$ or $\tau$ & GF time & $\tau$\\
+Hessian & $H=\nabla^2\mathcal L$ & $\nabla^2F$ & $\nabla^2 f$ & $\nabla^2L$\\
+sharpness & $\lambda_1$ & $\lambda_{\max}(H)$ & $\lambda_{\max}(\nabla^2f)$ & $\lambda_1(\nabla^2L)$\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{warningbox}
+In optimization texts, ``$L$-smooth'' usually uses $L$ for a Lipschitz constant.  In Arora--Li--Panigrahi, $L(x)$ denotes the loss itself.  We therefore use $\beta$ for a smoothness constant.
+\end{warningbox}
+
+\section{The logic in one page}
+Gradient descent is
+\[
+\theta_{k+1}=\theta_k-\eta\nabla\mathcal L(\theta_k).
+\]
+Under the time scaling $t=k\eta$, the formal limit $\eta\to0$ gives gradient flow
+\[
+\dot\theta(t)=-\nabla\mathcal L(\theta(t)).
+\]
+Gradient flow has the exact energy identity
+\[
+\frac{d}{dt}\mathcal L(\theta(t))
+=\nabla\mathcal L(\theta(t))^\top\dot\theta(t)
+=-\|\nabla\mathcal L(\theta(t))\|^2\le0.
+\]
+By contrast, finite-step gradient descent on a quadratic mode of curvature $\lambda$ evolves as
+\[
+e_{k+1}=(1-\eta\lambda)e_k,
+\]
+so stability requires $|1-\eta\lambda|<1$, equivalently $0<\eta\lambda<2$.  This is the origin of the scale $2/\eta$ that appears in Edge-of-Stability experiments.
+
+\begin{presentbox}
+The entire week can be summarized as follows: gradient flow is an idealized, continuously dissipative dynamics; finite-step gradient descent has an additional numerical-stability constraint.  Deep networks often train close to that discrete stability boundary rather than in the regime where gradient flow is a quantitatively accurate approximation.
+\end{presentbox}
+
+\chapter{From Gradient Descent to Gradient Flow}
+
+\section{Gradient descent as explicit Euler}
+Consider the ODE
+\[
+\dot x(t)=-\nabla \mathcal L(x(t)).
+\]
+Explicit Euler with step $\eta$ gives
+\[
+\frac{x_{k+1}-x_k}{\eta}\approx -\nabla\mathcal L(x_k),
+\]
+therefore
+\[
+x_{k+1}=x_k-\eta\nabla\mathcal L(x_k).
+\]
+Thus GD is exactly the explicit-Euler discretization of the gradient-flow ODE.  This statement is algebraic; whether the discretization accurately tracks the ODE depends on the step size and local curvature.
+
+\section{Energy dissipation}
+Let $x(t)$ solve gradient flow.  By the chain rule,
+\begin{align*}
+\frac{d}{dt}\mathcal L(x(t))
+&=\nabla\mathcal L(x(t))^\top\dot x(t)\\
+&=\nabla\mathcal L(x(t))^\top\bigl(-\nabla\mathcal L(x(t))\bigr)\\
+&=-\|\nabla\mathcal L(x(t))\|^2.
+\end{align*}
+So the objective is monotone along every classical gradient-flow trajectory.
+
+\section{PL inequality and exponential convergence}
+Assume the Polyak--\L{}ojasiewicz condition
+\[
+\frac12\|\nabla\mathcal L(x)\|^2\ge \mu\bigl(\mathcal L(x)-\mathcal L_\star\bigr).
+\]
+Set $g(t)=\mathcal L(x(t))-\mathcal L_\star$.  Whenever $g(t)>0$,
+\begin{align*}
+\dot g(t)
+&=-\|\nabla\mathcal L(x(t))\|^2\\
+&\le -2\mu g(t).
+\end{align*}
+Hence
+\[
+\frac{d}{dt}\log g(t)\le -2\mu,
+\]
+and integrating from $0$ to $t$ yields
+\[
+\boxed{\mathcal L(x(t))-\mathcal L_\star
+\le e^{-2\mu t}\bigl(\mathcal L(x(0))-\mathcal L_\star\bigr).}
+\]
+If $g(t)=0$, the conclusion is already true.
+
+\section{Exact quadratic solution}
+For
+\[
+\mathcal L(x)=\frac12(x-x_\star)^\top H(x-x_\star),\qquad H\succeq0,
+\]
+with error $e(t)=x(t)-x_\star$,
+\[
+\dot e(t)=-He(t).
+\]
+Therefore
+\[
+e(t)=e^{-Ht}e(0).
+\]
+If $H=Q\Lambda Q^\top$, then each eigenmode satisfies
+\[
+z_i(t)=e^{-\lambda_i t}z_i(0).
+\]
+Large-curvature directions decay faster in continuous time; there is no oscillation induced by a finite step.
+
+\begin{presentbox}
+Gradient flow is useful because many facts become identities: the loss derivative is exactly minus the squared gradient norm, and a quadratic decomposes into independent exponentially decaying modes.  The price is that it removes the finite-step phenomenon that later creates the Edge of Stability.
+\end{presentbox}
+
+\chapter{Finite step size and the $2/\eta$ boundary}
+
+\section{One-dimensional quadratic}
+Let
+\[
+\mathcal L(x)=\frac{\lambda}{2}x^2,\qquad \lambda>0.
+\]
+Then GD is
+\begin{align*}
+x_{k+1}
+&=x_k-\eta\lambda x_k\\
+&=(1-\eta\lambda)x_k,
+\end{align*}
+so
+\[
+x_k=(1-\eta\lambda)^k x_0.
+\]
+Convergence to zero requires
+\[
+|1-\eta\lambda|<1,
+\]
+which is equivalent to
+\[
+\boxed{0<\eta\lambda<2.}
+\]
+There are three qualitatively different regimes:
+\begin{itemize}
+\item $0<\eta\lambda<1$: monotone approach to the minimizer;
+\item $1<\eta\lambda<2$: alternating signs but decaying magnitude;
+\item $\eta\lambda>2$: alternating signs with growing magnitude.
+\end{itemize}
+
+\section{Multidimensional quadratic and sharpness}
+For the quadratic from the previous chapter,
+\[
+e_{k+1}=(I-\eta H)e_k.
+\]
+Writing $H=Q\Lambda Q^\top$ and $z_k=Q^\top e_k$ gives
+\[
+z_{i,k+1}=(1-\eta\lambda_i)z_{i,k}.
+\]
+The strict quadratic stability condition is therefore
+\[
+0<\eta\lambda_i<2\quad\text{for every positive eigenvalue},
+\]
+so the limiting direction is the sharpest one:
+\[
+\eta\lambda_{\max}(H)<2.
+\]
+
+\section{Descent lemma: a sufficient monotonicity condition}
+If $\mathcal L$ is $\beta$-smooth,
+\[
+\mathcal L(y)\le \mathcal L(x)+\nabla\mathcal L(x)^\top(y-x)+\frac\beta2\|y-x\|^2.
+\]
+Set $y=x-\eta\nabla\mathcal L(x)$.  Then
+\begin{align*}
+\mathcal L(x-\eta\nabla\mathcal L(x))
+&\le \mathcal L(x)-\eta\|\nabla\mathcal L(x)\|^2
++\frac{\beta\eta^2}{2}\|\nabla\mathcal L(x)\|^2\\
+&=\mathcal L(x)-\eta\left(1-\frac{\beta\eta}{2}\right)
+\|\nabla\mathcal L(x)\|^2.
+\end{align*}
+Thus $\eta<2/\beta$ is a sufficient condition for one-step descent.  For a fixed PSD quadratic it agrees with the exact boundary; for a general nonlinear objective it should not be advertised as an exact global stability threshold.
+
+\section{Why crossing $2/\eta$ need not mean permanent divergence}
+In a neural network, $H(x_k)$ changes with $k$.  The exact mode recursion
+\[
+z_{i,k+1}=(1-\eta\lambda_i)z_{i,k}
+\]
+is therefore exact only for a fixed quadratic, and a local approximation when the Hessian is treated as frozen.  A trajectory can enter a locally unstable region, move to another region with a different Hessian, and continue making long-run progress.
+
+\begin{presentbox}
+The number $2/\eta$ is not a mysterious neural-network constant.  It is the explicit-Euler stability boundary of a quadratic mode.  The interesting question is why nonlinear training repeatedly approaches this boundary and then keeps progressing instead of simply diverging.
+\end{presentbox}
+
+\chapter{Cohen et al. (2021): the empirical Edge of Stability}
+
+\section{Progressive sharpening and the EoS regime}
+Cohen et al. track the largest Hessian eigenvalue during full-batch training.  A common pattern is:
+\begin{enumerate}
+\item \textbf{Progressive sharpening}: while sharpness is comfortably below $2/\eta$, it tends to increase during training.
+\item \textbf{Edge of Stability}: once sharpness approaches the classical quadratic boundary, it remains near that scale while the loss becomes non-monotone step by step but still decreases over a longer time scale.
+\end{enumerate}
+
+\begin{paperbox}
+For plain fixed-step GD, the central dimensionless quantity is $\eta\lambda_{\max}(\nabla^2\mathcal L)$.  The empirical EoS statement concerns this specific optimization setting; it should not be blindly transferred to normalized GD or other algorithms with a state-dependent effective step size.
+\end{paperbox}
+
+\section{Relation to gradient flow}
+Early in training, sufficiently small-step GD may track the gradient-flow trajectory.  Progressive sharpening raises the local curvature until the discretization error is no longer perturbative.  A local Taylor expansion of the exact flow over time $\eta$ is
+\[
+x(t+\eta)=x(t)-\eta g+\frac{\eta^2}{2}Hg+O(\eta^3),
+\qquad g=\nabla\mathcal L(x(t)),\ H=\nabla^2\mathcal L(x(t)).
+\]
+The leading correction relative to the Euler step is of order
+\[
+\frac{\|\eta^2Hg\|}{\|\eta g\|}\sim \eta\|H\|.
+\]
+Thus the approximation can cease to be uniformly accurate precisely when $\eta\lambda_{\max}=O(1)$.
+
+\section{Learning-rate drops}
+If $\eta$ is reduced, the quadratic boundary $2/\eta$ moves upward.  A run that had been near the old boundary can become temporarily stable again, after which progressive sharpening may resume toward the new boundary.  This intervention is strong evidence that the observed sharpness scale is tied to the optimizer step size rather than being only a static property of the architecture.
+
+\section{What the paper does not claim}
+The EoS observation does not imply that every minibatch run exactly satisfies $\lambda_1=2/\eta$, nor that training ``wants'' to maximize curvature, nor that the local quadratic model is globally valid.  It is a statement about the interaction between evolving curvature and a finite learning rate.
+
+\begin{presentbox}
+Cohen et al. show a characteristic transition: GD first behaves roughly like gradient flow while the landscape sharpens, then enters a regime where the finite step size matters qualitatively.  The loss can oscillate at the step scale while still improving at a slower scale.
+\end{presentbox}
+
+\chapter{Arora--Li--Panigrahi (2022): a mathematical EoS model}
+
+\section{Why pointwise sharpness is not always enough}
+For a nonlinear function, stability over a full update segment depends on the Hessian along the segment, not only at its starting point.  A useful quantity is a stableness measure of the form
+\[
+S_L(x,\eta)=\eta\sup_{0\le s\le\eta}
+\lambda_1\!\left(\nabla^2L(x-s\nabla L(x))\right).
+\]
+It records how much curvature is encountered by the actual finite step.
+
+\section{Two mechanisms that produce EoS behavior}
+\subsection{Normalized gradient descent}
+Normalized GD is
+\[
+x_{k+1}=x_k-\eta\frac{\nabla L(x_k)}{\|\nabla L(x_k)\|}.
+\]
+It can be rewritten as ordinary GD with state-dependent effective learning rate
+\[
+\eta_k^{\mathrm{eff}}=\frac{\eta}{\|\nabla L(x_k)\|}.
+\]
+Near a minimum manifold, $\|\nabla L\|$ becomes small, so the effective step can become large even when the nominal $\eta$ is fixed.
+
+\subsection{Gradient descent on $\sqrt L$}
+For $L>0$,
+\[
+\nabla\!\left(L^{1/2}\right)=\frac{\nabla L}{2\sqrt L}.
+\]
+Differentiating again,
+\[
+\nabla^2\sqrt L
+=\frac{2L\nabla^2L-\nabla L\nabla L^\top}{4L^{3/2}}.
+\]
+The denominator becomes singular as $L\to0$, creating a second mechanism by which a finite step can encounter a sharp effective geometry near the minimum set.
+
+\section{A minimum manifold and the gradient-flow endpoint map}
+Suppose
+\[
+\Gamma=\{x:L(x)=0\}
+\]
+is a smooth manifold rather than a single point.  Let $\phi(x,\tau)$ denote the standard gradient-flow trajectory starting from $x$, and define
+\[
+\Phi(x)=\lim_{\tau\to\infty}\phi(x,\tau)
+\]
+when the limit exists.  The map $\Phi$ projects a nearby point to the minimum reached by gradient flow.
+
+\section{Two time scales}
+For normalized GD with small $\eta$, there is a fast approach to the minimum manifold and a slower drift along it.
+
+The fast scale uses the normalized-flow time
+\[
+\tau=k\eta,
+\]
+associated with
+\[
+\frac{dx}{d\tau}=-\frac{\nabla L(x)}{\|\nabla L(x)\|}.
+\]
+This normalized flow follows the same geometric paths as standard gradient flow but with a different time parametrization.
+
+On the slower scale, many small oscillatory steps accumulate into an $O(1)$ tangential displacement along $\Gamma$.  In the models analyzed by Arora et al., the limiting drift has the form
+\[
+\dot X=-\frac14 P_T\nabla\log\lambda_1
+\]
+for normalized GD, and
+\[
+\dot X=-\frac18 P_T\nabla\lambda_1
+\]
+for GD on $\sqrt L$, where $P_T$ projects onto the tangent space of the minimum manifold.
+
+\section{Implicit sharpness regularization}
+The previous equations make the phrase ``implicit regularization'' precise in this setting: the finite-step EoS dynamics does not merely pick an arbitrary point on the zero-loss manifold.  Its slow component moves in a direction that decreases a sharpness-related potential.
+
+\begin{warningbox}
+These limiting-flow formulas are theorem-level statements only under the assumptions of the Arora--Li--Panigrahi model.  They are not a universal theorem that ordinary deep-network SGD always minimizes Hessian sharpness.
+\end{warningbox}
+
+\begin{presentbox}
+Arora et al. give a concrete mathematical mechanism for the seemingly paradoxical EoS regime.  Fast finite-step oscillations can average into a slow tangent drift along the minimum manifold, and that drift favors lower sharpness in the analyzed models.
+\end{presentbox}
+
+\chapter{Putting gradient flow and EoS in one picture}
+
+\section{Three distinct dynamics}
+It is useful to keep three objects separate:
+\begin{enumerate}
+\item standard gradient flow $\dot x=-\nabla L(x)$;
+\item ordinary finite-step GD $x_{k+1}=x_k-\eta\nabla L(x_k)$;
+\item modified finite-step methods such as normalized GD or GD on $\sqrt L$.
+\end{enumerate}
+A theorem for one should not be silently imported into another.
+
+\section{The local period-two picture}
+If the sharpest local mode has curvature $\lambda_1$ and the Hessian is approximately frozen for a few steps,
+\[
+z_{k+1}\approx(1-\eta\lambda_1)z_k.
+\]
+Near $\eta\lambda_1\approx2$, the multiplier is near $-1$, so the mode changes sign almost every step while decaying or growing only slowly.  This is the simplest local explanation for short-scale oscillation at the EoS.
+
+\section{Why ``GD is gradient flow'' fails near the EoS}
+The Euler interpretation remains algebraically true, but being a discretization does not guarantee being an accurate approximation.  Near the EoS, the dimensionless stiffness $\eta\|H\|$ is order one, exactly where explicit Euler can exhibit dynamics absent from the underlying ODE.
+
+\section{Common questions}
+\textbf{Is $2/\eta$ a universal threshold?}  No.  It is exact for fixed PSD quadratics under plain GD and serves as a local reference scale more generally.
+
+\textbf{Does a non-monotone loss mean optimization has failed?}  No.  Stepwise monotonicity and long-time progress are different properties.
+
+\textbf{Does EoS prove that sharp minima generalize poorly?}  No.  EoS is an optimization-dynamics statement.  Generalization requires a separate argument.
+
+\begin{presentbox}
+The conceptual message is not that gradient flow is wrong, but that finite learning rates create an additional layer of dynamics.  In deep learning, training frequently operates where this layer is not a small perturbation.
+\end{presentbox}
+
+\chapter{Presentation checklist}
+
+\section{Eight equations worth keeping on the board}
+\begin{align*}
+&x_{k+1}=x_k-\eta\nabla\mathcal L(x_k),\\
+&\dot x=-\nabla\mathcal L(x),\\
+&\frac{d}{dt}\mathcal L(x(t))=-\|\nabla\mathcal L(x(t))\|^2,\\
+&x_{k+1}=(1-\eta\lambda)x_k,\\
+&0<\eta\lambda<2,\\
+&\lambda_{\max}(H)\approx 2/\eta\quad\text{(plain-GD EoS scale)},\\
+&\dot X=-\frac14P_T\nabla\log\lambda_1,\\
+&\dot X=-\frac18P_T\nabla\lambda_1.
+\end{align*}
+
+\section{Suggested presentation order}
+Start with the exact one-dimensional quadratic.  Then show that gradient flow lacks the finite-step instability.  Introduce Cohen et al. as the empirical observation that neural networks approach this discrete boundary.  Finish with Arora et al. as a controlled model in which fast EoS oscillations induce a slow, sharpness-reducing motion.
+
+\section{Common mathematical mistakes}
+\begin{itemize}
+\item Calling $\eta<2/\beta$ an exact global threshold for every nonlinear objective.
+\item Treating $z_{i,k+1}=(1-\eta\lambda_i)z_{i,k}$ as an exact neural-network recursion when the Hessian changes every step.
+\item Calling $\tau=k\eta$ in normalized GD ``standard gradient-flow time.''
+\item Extending the plain-GD quantity $\eta\lambda_1$ to algorithms with a state-dependent effective learning rate without adjustment.
+\item Confusing optimization stability with statistical generalization.
+\end{itemize}
+
+\begin{presentbox}
+Thirty-second conclusion: gradient flow explains the smooth descent picture, while finite-step GD introduces a curvature-dependent stability boundary.  Deep networks often sharpen until that boundary becomes active; near it, discrete oscillations and slower implicit selection effects can coexist.
+\end{presentbox}
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\begin{itemize}
+\item Cohen, J., Kaur, S., Li, Y., Kolter, J. Z., and Talwalkar, A. \emph{Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability}. ICLR, 2021.
+\item Arora, S., Li, Z., and Panigrahi, A. \emph{Understanding Gradient Descent on the Edge of Stability in Deep Learning}. ICML, 2022.
+\end{itemize}
+\end{document}

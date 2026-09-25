@@ -1,0 +1,327 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar -- English Study Notes
+% Compile with:
+%   xelatex FILENAME.tex
+%   xelatex FILENAME.tex
+% or: latexmk -xelatex FILENAME.tex
+% =====================================================================
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[unicode,bookmarks=false]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\hypersetup{colorlinks=true,linkcolor=NoteBlue,citecolor=NoteBlue,urlcolor=NoteBlue}
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{}{\footnotesize Transformer Computational Theory}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+\makechapterstyle{seminarnotes}{
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\grad}{\nabla}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Tr}{Tr}
+\tcbset{seminarbox/.style={enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,fonttitle=\bfseries\small,coltitle=black,attach title to upper={\quad}}}
+\newtcolorbox{keybox}[1][]{seminarbox,colback=NoteBlueLight,borderline west={1.8pt}{0pt}{NoteBlue},title={Key point#1}}
+\newtcolorbox{paperbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={From the original paper#1}}
+\newtcolorbox{suppbox}[1][]{seminarbox,colback=NoteWarmLight,borderline west={1.8pt}{0pt}{NoteWarm},title={Supplementary derivation#1}}
+\newtcolorbox{warningbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={Caution#1}}
+\newtcolorbox{presentbox}{seminarbox,colback=white,borderline west={2.2pt}{0pt}{black!70},fontupper=\footnotesize,top=1.2mm,bottom=1.2mm,before={\par},before skip=0.5em,after skip=0.5em,title={How to say it in the presentation}}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\begin{document}
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 5\par}
+\vspace{1.4cm}
+{\HUGE\bfseries Transformer Computational Theory\par}
+\vspace{0.55cm}
+{\large English seminar study notes\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+\begin{minipage}{0.86\textwidth}
+\small
+These notes are an English companion to the seminar handout.  The emphasis is on
+mathematical derivations that can be followed line by line, on separating theorem
+statements from interpretation, and on identifying the assumptions under which each
+claim is valid.
+\end{minipage}
+\vfill
+{\small\textbf{Primary readings}\\[0.25em]
+Hahn, \textbf{Theoretical Limitations of Self-Attention in Neural Sequence Models}, TACL 2020.\\P\'erez et al., \textbf{Attention is Turing Complete}, JMLR 2021.\\Merrill and Sabharwal, \textbf{The Parallelism Tradeoff}, TACL 2023.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+\tableofcontents*
+\clearpage
+
+\chapter{Notation and the resource model}
+\section{Four axes that must be separated}
+Transformer computational theory looks contradictory only when different resource models are mixed.  Keep separate:
+\begin{enumerate}
+\item architectural depth $L$;
+\item sequence length $n$;
+\item numerical precision $p$;
+\item number of autoregressive decoding steps $T$.
+\end{enumerate}
+A fixed-depth, log-precision one-pass Transformer and an autoregressive Transformer with an unbounded scratchpad are different computational objects.
+
+\section{A map of the main results}
+\begin{center}\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.25\textwidth}XX}
+\toprule
+Result type & Main assumption & Message\\
+\midrule
+circuit upper bound & fixed depth, bounded/log precision & one pass lies in a small parallel circuit class\\
+Turing completeness & idealized precision/state and recurrent decoding & arbitrary computable procedures can be simulated\\
+CoT hierarchy & repeated autoregressive steps & scratchpad length is an explicit time resource\\
+formal-language results & task-specific assumptions & reveal which sequential dependencies require extra depth/time\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{presentbox}
+The right question is never simply ``Are Transformers powerful?''  It is: powerful under which depth, precision, sequence-length, and decoding-time budget?
+\end{presentbox}
+
+\chapter{Formal languages and circuit complexity}
+\section{Language recognition}
+A language is a set $L\subseteq\Sigma^*$.  For each length $n$, recognition asks for a Boolean function
+\[
+f_n:\Sigma^n\to\{0,1\}.
+\]
+A circuit family $\{C_n\}$ contains one circuit for every input length.  Complexity classes restrict depth, size, gate types, and uniformity of the family.
+
+\section{$\mathrm{AC}^0$, $\mathrm{TC}^0$, and $\mathrm{NC}^1$}
+At a high level:
+\begin{itemize}
+\item $\mathrm{AC}^0$: polynomial size, constant depth, unbounded fan-in AND/OR/NOT;
+\item $\mathrm{TC}^0$: adds threshold/majority gates;
+\item $\mathrm{NC}^1$: polynomial size and $O(\log n)$ depth with bounded fan-in.
+\end{itemize}
+Threshold gates make $\mathrm{TC}^0$ surprisingly strong: many arithmetic operations, including addition and multiplication under standard encodings, have highly parallel circuits.
+
+\section{Regular languages and sequential state}
+A DFA has transition function
+\[
+\delta:Q\times\Sigma\to Q.
+\]
+For a string $x_1\cdots x_n$, the final state is
+\[
+q_n=\delta(\cdots\delta(\delta(q_0,x_1),x_2)\cdots,x_n).
+\]
+The definition is sequential, but this does not imply that every DFA evaluation inherently requires depth $n$: transition functions can sometimes be composed in a balanced tree.
+
+\begin{presentbox}
+Formal-language difficulty and circuit depth are related but not identical.  A sequential specification can sometimes admit a parallel algorithm.
+\end{presentbox}
+
+\chapter{Fixed-depth self-attention and early limitations}
+\section{Why global attention is not automatically sequential computation}
+Self-attention can read all positions in one layer, but a constant number of layers provides only a constant number of rounds of adaptive computation.  Global access is therefore different from an unbounded recurrent state update.
+
+\section{Hahn's perspective}
+Early lower-bound analyses show that under specific attention assumptions, fixed-depth self-attention has difficulty with language phenomena requiring certain forms of unbounded hierarchical or counting behavior.  The technical statement depends on the attention type and numerical assumptions; one should not paraphrase it as ``Transformers cannot recognize regular languages.''
+
+\section{Hard attention as a circuit}
+With hard attention, every head selects a bounded amount of information from previous representations.  A fixed number of layers can often be unfolded into a bounded-depth circuit.  This makes the architectural depth constraint transparent.
+
+\begin{presentbox}
+A single attention layer has global communication but only one round of computation.  Computational depth, not receptive field alone, is the key resource.
+\end{presentbox}
+
+\chapter{Log-precision Transformers and $\mathrm{TC}^0$}
+\section{Why precision must be part of the theorem}
+A real number with arbitrary precision can hide unbounded information.  To obtain a meaningful discrete complexity statement, numerical values must have bounded bit complexity, for example $O(\!\log n)$ bits.
+
+\section{The upper-bound idea}
+For fixed architectural depth and log-bounded precision, the elementary operations in a Transformer layer---dot products, bounded-precision arithmetic, comparisons/softmax approximations, normalization, and feed-forward maps---can be implemented by constant-depth threshold circuits of polynomial size.  Composing a constant number of layers preserves constant depth, leading to a uniform $\mathrm{TC}^0$-type upper bound under the theorem's assumptions.
+
+\section{Why attention sums do not imply serial addition}
+An attention output contains sums such as
+\[
+\sum_{j=1}^n \alpha_{ij}v_j.
+\]
+Circuit complexity allows these sums to be computed in parallel with threshold/arithmetic circuitry.  The mathematical expression has $n$ terms, but circuit depth is not the same as the number of written summands.
+
+\section{What the upper bound means}
+The result constrains one-pass computation with fixed depth and prescribed precision.  It does not say that a Transformer cannot solve tasks outside $\mathrm{TC}^0$ when given more layers, iterative decoding, external memory, or a different precision model.
+
+\begin{presentbox}
+The $\mathrm{TC}^0$ result is a resource-bounded simulation theorem: a fixed-depth, log-precision forward pass can be compiled into a constant-depth threshold circuit.
+\end{presentbox}
+
+\chapter{Why Turing completeness is not a contradiction}
+\section{Turing completeness}
+A model is Turing complete if, under an appropriate encoding and with sufficient time/memory, it can simulate any Turing machine.  This is an asymptotic expressivity statement, not an efficiency guarantee.
+
+\section{P\'erez--Barcel\'o--Marinkovi\'c construction}
+Idealized Transformer constructions can encode a machine configuration into activations, use attention to retrieve relevant prior information, and generate the next configuration autoregressively.  Positional information and sufficiently precise numerical state are crucial to the simulation.
+
+\section{Reading a simulated tape}
+A common device is to encode write events over time.  To recover the content of a tape cell, the model identifies the most recent write to that address.  Attention supplies content-addressable retrieval, while the autoregressive loop supplies repeated machine steps.
+
+\section{Where the extra power comes from}
+The one-pass $\mathrm{TC}^0$ theorem fixes depth.  A Turing simulation uses an unbounded number of recurrent or autoregressive steps, and often stronger precision assumptions.  Therefore the two results answer different questions.
+
+\begin{warningbox}
+Turing complete does not mean polynomial-time efficient, numerically robust, trainable by SGD, or capable of generalizing to arbitrary computation lengths from finite data.
+\end{warningbox}
+
+\begin{presentbox}
+There is no paradox: one fixed forward pass can lie in a low circuit class while repeated forward passes, with generated state fed back as input, simulate an arbitrary algorithm.
+\end{presentbox}
+
+\chapter{Chain of Thought as a computational resource}
+\section{One generated token is another round of computation}
+If a decoder produces scratchpad tokens
+\[
+z_1,z_2,\ldots,z_T,
+\]
+then each token invokes another Transformer forward pass conditioned on the previous transcript.  The effective sequential depth therefore grows with $T$ even when the network parameters and architectural depth are fixed.
+
+\section{A time--space sandwich}
+Results in this line of work relate a Transformer with $t(n)$ generated reasoning steps to classical time and space.  A useful schematic sandwich is
+\[
+\mathrm{TIME}(t(n))
+\subseteq
+\mathrm{CoT}(t(n))
+\subseteq
+\mathrm{SPACE}(t(n)+\log n),
+\]
+with the exact model definitions and uniformity assumptions taken from the corresponding theorem.  The left inclusion comes from simulating algorithmic steps with tokens; the right inclusion comes from storing the transcript and recomputing each bounded-depth forward pass with limited workspace.
+
+\section{Regular languages with linear scratchpad}
+A finite automaton can be simulated by emitting its current state after reading each input symbol.  If $q_i=\delta(q_{i-1},x_i)$, a scratchpad of length $\Theta(n)$ explicitly externalizes the recurrent state sequence.
+
+\section{Polynomial scratchpad and polynomial-time computation}
+If a polynomial-time Turing machine takes $p(n)$ steps, an autoregressive model that can faithfully emit one simulated configuration per step uses $p(n)$ reasoning tokens.  Thus polynomially many CoT steps can recover polynomial-time sequential computation under the idealized simulation assumptions.
+
+\begin{presentbox}
+CoT is not merely ``explanation text'' in these theorems.  It is an external memory and time tape that converts repeated constant-depth computations into a long sequential algorithm.
+\end{presentbox}
+
+\chapter{Parallel shortcuts and automata}
+\section{Balanced composition of transitions}
+For each symbol $a$, define the state transition map $T_a:Q\to Q$.  A substring $x_i\cdots x_j$ corresponds to the composition
+\[
+T_{x_j}\circ\cdots\circ T_{x_i}.
+\]
+Function composition is associative, so a length-$n$ product of transition maps can be organized as a balanced tree of depth $O(\log n)$ rather than a left-to-right chain of depth $n$.
+
+\section{Why this matters for Transformers}
+Some formal-language tasks that look sequential from the automaton definition admit logarithmic-depth parallel algorithms.  Results constructing Transformer shortcuts exploit this algebraic structure.  Their existence does not imply that standard training automatically discovers the shortcut.
+
+\section{Existence versus learnability}
+The theoretical statements often show that parameters exist that implement a circuit or simulation.  A separate theorem would be required to prove that gradient-based training on a specified data distribution finds those parameters.
+
+\begin{presentbox}
+Sequential specification does not equal sequential lower bound.  Before claiming that CoT is necessary, ask whether the transition computation admits an associative parallelization.
+\end{presentbox}
+
+\chapter{Arithmetic and algorithmic reasoning}
+\section{$\mathrm{TC}^0$ already contains substantial arithmetic}
+The fact that a one-pass model is upper-bounded by $\mathrm{TC}^0$ does not make it arithmetically trivial.  Threshold circuits can implement many operations that look complicated when written sequentially.
+
+\section{Sequential dependency is often the harder resource}
+Long division-like procedures, graph exploration, or iterative dynamic programs are difficult not merely because they contain arithmetic, but because later operations depend adaptively on earlier intermediate states.  Autoregressive reasoning provides the missing recurrence by externalizing those states.
+
+\section{Internal versus external reasoning}
+A fixed forward pass can still perform rich parallel transformations internally.  The theoretical distinction is that hidden activations are consumed in a bounded number of layers, while externalized tokens can be fed back for an unbounded number of additional rounds.
+
+\begin{presentbox}
+The strongest conceptual distinction is parallel depth versus sequential time.  Transformers have strong global parallel computation; CoT supplies additional sequential time.
+\end{presentbox}
+
+\chapter{Presentation checklist}
+\section{Ten formulas and relations to keep}
+\begin{align*}
+&L\subseteq\Sigma^*,\\
+&q_i=\delta(q_{i-1},x_i),\\
+&\mathrm{AC}^0\subseteq\mathrm{TC}^0\subseteq\mathrm{NC}^1\quad\text{(standard containments)},\\
+&\text{fixed depth + log precision}\Rightarrow \mathrm{TC}^0\text{-type simulation},\\
+&\text{Turing completeness}\neq\text{efficient computation},\\
+&z_1,\ldots,z_T\quad\text{adds }T\text{ sequential rounds},\\
+&\mathrm{TIME}(t)\subseteq\mathrm{CoT}(t),\\
+&\mathrm{CoT}(t)\subseteq\mathrm{SPACE}(t+\log n),\\
+&T_{x_n}\circ\cdots\circ T_{x_1},\\
+&\text{parallel depth}\neq\text{sequence length}.
+\end{align*}
+
+\section{Common mistakes}
+\begin{itemize}
+\item Calling a Turing-complete model efficient or learnable.
+\item Stating a $\mathrm{TC}^0$ upper bound without its fixed-depth and precision assumptions.
+\item Treating global attention as equivalent to unbounded sequential computation.
+\item Assuming every apparently sequential problem needs linear CoT.
+\item Confusing existence of a simulation with empirical behavior of trained LLMs.
+\end{itemize}
+
+\begin{presentbox}
+Thirty-second conclusion: a fixed-depth, finite-precision Transformer forward pass is highly parallel and can be upper-bounded by small circuit classes, while autoregressive reuse of the same network adds sequential time and can support general algorithm simulation.  Precision and scratchpad length are computational resources, not implementation details.
+\end{presentbox}
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\begin{itemize}
+\item Hahn, M. \emph{Theoretical Limitations of Self-Attention in Neural Sequence Models}. TACL, 2020.
+\item P\'erez, J., Barcel\'o, P., and Marinkovi\'c, J. \emph{Attention is Turing Complete}. JMLR, 2021.
+\item Merrill, W. and Sabharwal, A. \emph{The Parallelism Tradeoff: Limitations of Log-Precision Transformers}. TACL, 2023.
+\item Merrill, W. and Sabharwal, A. \emph{The Expressive Power of Transformers with Chain of Thought}. 2024.
+\end{itemize}
+\end{document}

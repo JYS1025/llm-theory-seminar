@@ -1,0 +1,1324 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar Week 2: Mean-Field Theory & Infinite-Width Dynamics
+%
+% Compile:
+%   xelatex mean_field_infinite_width_notes.tex
+%   xelatex mean_field_infinite_width_notes.tex
+% or
+%   latexmk -xelatex mean_field_infinite_width_notes.tex
+%
+% Korean typesetting: kotex + XeLaTeX.
+%
+% Layout reference / inspiration (flattened into this single file):
+%   - Ben Jones, "lecture-notes" (Overleaf, CC BY 4.0)
+%   - CMU-Notes/notes-template (structured university course notes)
+% This file keeps the fixed Week-1 seminar-note layout.
+% =====================================================================
+
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+
+\usepackage{kotex}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{xurl}
+\usepackage[unicode]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+
+% ---------- page geometry ----------
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{2em}
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+
+% ---------- restrained lecture-note palette ----------
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\definecolor{NoteRule}{HTML}{C8CDD2}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=NoteBlue,
+  citecolor=NoteBlue,
+  urlcolor=NoteBlue,
+  pdftitle={Mean-Field Theory and Infinite-Width Dynamics},
+  pdfauthor={LLM Theory Seminar}
+}
+
+% ---------- running heads ----------
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{ }{\footnotesize Mean-Field \& Infinite-Width Dynamics}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+
+% ---------- chapter / section hierarchy ----------
+\makechapterstyle{seminarnotes}{
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+
+% ---------- notation ----------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Ptwo}{\mathcal{P}_2}
+\newcommand{\Risk}{\mathcal{R}}
+\newcommand{\Energy}{\mathcal{E}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\grad}{\nabla}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\diver}{\nabla\!\cdot}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\abs}[1]{\left\lvert #1\right\rvert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\Law}{\operatorname{Law}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\Id}{\operatorname{Id}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\Lip}{Lip}
+
+% ---------- note environments ----------
+\tcbset{
+  seminarbox/.style={
+    enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,
+    left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,
+    before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,
+    fonttitle=\bfseries\small,coltitle=black,
+    attach title to upper={\quad},
+  }
+}
+\newtcolorbox{keybox}[1][]{
+  seminarbox,colback=NoteBlueLight,
+  borderline west={1.8pt}{0pt}{NoteBlue},
+  title={핵심#1}
+}
+\newtcolorbox{paperbox}[1][]{
+  seminarbox,colback=NoteGrayLight,
+  borderline west={1.8pt}{0pt}{NoteGray},
+  title={원 논문 기준#1}
+}
+\newtcolorbox{suppbox}[1][]{
+  seminarbox,colback=NoteWarmLight,
+  borderline west={1.8pt}{0pt}{NoteWarm},
+  title={보충 유도 --- 논문 밖의 독자용 전개#1}
+}
+\newtcolorbox{warningbox}[1][]{
+  seminarbox,colback=NoteGrayLight,
+  borderline west={1.8pt}{0pt}{NoteGray},
+  title={주의#1}
+}
+\newtcolorbox{presentbox}{
+  seminarbox,colback=white,
+  borderline west={2.2pt}{0pt}{black!70},
+  fontupper=\footnotesize,
+  top=1.2mm,bottom=1.2mm,before skip=0.5em,after skip=0.5em,
+  title={발표에서 이렇게 말하기}
+}
+\newtcolorbox{presentboxcompact}{
+  enhanced,sharp corners,boxrule=0pt,frame hidden,colback=white,
+  borderline west={2.2pt}{0pt}{black!70},
+  left=3.2mm,right=3mm,top=0.8mm,bottom=0.8mm,
+  before={\par},before skip=0.35em,after skip=0.35em,
+  fonttitle=\bfseries\small,coltitle=black,
+  fontupper=\footnotesize,
+  attach title to upper={\quad},
+  title={발표에서 이렇게 말하기}
+}
+
+\theoremstyle{definition}
+\newtheorem{definition}{정의}[chapter]
+\newtheorem{proposition}{명제}[chapter]
+\newtheorem{theorem}{정리}[chapter]
+\newtheorem{lemma}{보조정리}[chapter]
+
+\begin{document}
+
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 2\par}
+\vspace{1.4cm}
+{\HUGE\bfseries Mean-Field Theory와\\[0.18em]Infinite-Width Dynamics\par}
+\vspace{0.55cm}
+{\large particle dynamics에서 Wasserstein gradient flow까지\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+
+\begin{minipage}{0.86\textwidth}
+\small
+폭이 큰 two-layer network를 개별 뉴런의 고차원 최적화 문제로만 보지 않고,
+뉴런 파라미터들의 \textbf{empirical distribution}이 시간에 따라 움직이는 입자계로 본다.
+finite-width particle system에서 measure-valued risk, continuity equation, Wasserstein gradient
+flow를 차례로 만들고, Mei--Montanari--Nguyen의 particle-to-PDE limit와 Chizat--Bach의
+optimal-transport 관점을 연결한다. 마지막에는 ``infinite width''가 곧 ``NTK/lazy''를
+뜻하지 않는 이유를 scaling 관점에서 분리한다.
+\end{minipage}
+
+\vfill
+{\small
+\textbf{Primary readings}\\[0.25em]
+Mei, Montanari, Nguyen, \textbf{A Mean Field View of the Landscape of Two-Layer Neural Networks}, PNAS 2018 / arXiv:1804.06561.\\
+Chizat, Bach, \textbf{On the Global Convergence of Gradient Descent for Over-parameterized Models using Optimal Transport}, NeurIPS 2018.\\
+Chizat, Oyallon, Bach, \textbf{On Lazy Training in Differentiable Programming}, NeurIPS 2019.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+
+\tableofcontents*
+\clearpage
+
+% =====================================================================
+\chapter{먼저 맞춰 둘 기호와 전체 그림}
+% =====================================================================
+
+\section{기호 대응표}
+
+세 논문은 거의 같은 구조를 서로 다른 언어로 쓴다. 이 노트에서는 measure를 주로
+$\rho$, width를 $N$, neuron parameter를 $\theta$로 쓰고, 원문을 인용할 때만
+각 논문의 표기를 병기한다.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.18\textwidth} *{4}{>{\raggedright\arraybackslash}X}}
+\toprule
+개념 & 이 노트 & Mei et al. & Chizat--Bach & Lazy paper \\
+\midrule
+폭 / 입자 수 & $N$ & $N$ & $m$ & $m$ \\
+뉴런 파라미터 & $\theta_i$ & $\theta_i$ & $u_i$ 또는 $(w_i,\theta_i)$ & $w=(\theta_1,\ldots,\theta_m)$ \\
+empirical measure & $\hat\rho_N$ & $\hat\rho^{(N)}$ & $\mu_{m,t}$ & 직접 중심 변수 아님 \\
+measure risk & $\Risk(\rho)$ & $R(\rho)$ & $F(\mu)$ & $R(h(w))$ \\
+finite-width risk & $\Risk_N$ & $R_N(\theta)$ & $F_m(u)$ & $F_\alpha(w)$ \\
+interaction potential & $U$ & $U(\theta,\theta')$ & 일반 feature map $\Phi$ & --- \\
+1차 potential & $\Psi$ & $\Psi(\theta;\rho)$ & $F'(\mu)(u)$ & --- \\
+연속시간 & $t$ & $t=k\varepsilon$ & $t$ & $t$ \\
+step-size scale & $\varepsilon$ & $s_k=\varepsilon\xi(k\varepsilon)$ & GF라 직접 없음 & scale $\alpha$ \\
+measure metric & $W_2$ & $W_2$ & $W_2$ & Euclidean parameter space \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{warningbox}[--- $\rho$의 중복 사용]
+Chizat--Bach의 neural-network case에서는 데이터 분포에도 $\rho$를 사용한다.
+이 노트에서는 혼동을 피하기 위해 데이터 분포를 $P$ 또는 $P_{XY}$로 쓰고,
+파라미터 분포를 $\rho$ 또는 $\mu$로 쓴다.
+\end{warningbox}
+
+\section{이번 주차의 논리 사슬}
+
+\begin{enumerate}
+  \item two-layer network는
+  \[
+    f_N(x)=\frac1N\sum_{i=1}^N \sigma_*(x;\theta_i)
+  \]
+  처럼 \textbf{동일한 형태의 뉴런을 평균낸 것}이다.
+
+  \item 따라서 순서가 없는 집합 $\{\theta_i\}_{i=1}^N$ 대신
+  \[
+    \hat\rho_N=\frac1N\sum_{i=1}^N\delta_{\theta_i}
+  \]
+  를 상태 변수로 쓰는 것이 자연스럽다.
+
+  \item width $N\to\infty$에서 empirical measure가 매끄러운 분포 $\rho_t$로 수렴하면,
+  $N\times D$개의 ODE 대신 하나의 measure-valued PDE를 얻는다.
+
+  \item 그 PDE는 단순한 임의의 PDE가 아니라
+  \[
+    \partial_t\rho_t
+    =\diver\!\left(\rho_t\grad\frac{\delta\Risk}{\delta\rho}(\rho_t)\right)
+  \]
+  꼴의 \textbf{Wasserstein gradient flow}다.
+
+  \item 중요한 점은 ``width $\to\infty$''가 dynamics를 하나로 정하지 않는다는 것이다.
+  $1/N$ scaling에서는 뉴런이 $O(1)$만큼 움직이는 mean-field dynamics가 남을 수 있고,
+  다른 scaling에서는 initialization 주변 선형화에 갇히는 lazy regime이 나타난다.
+\end{enumerate}
+
+\begin{keybox}
+이번 주차의 핵심 질문은 ``무한히 넓은 network의 함수가 무엇인가?''보다
+\textbf{``무한히 많은 뉴런의 학습 dynamics를 어떤 연속적인 객체로 기술할 수 있는가?''}에 가깝다.
+그 객체가 파라미터 분포 $\rho_t$이고, 그 dynamics가 Wasserstein gradient flow다.
+\end{keybox}
+
+\begin{presentbox}
+이번 주는 network width를 크게 했을 때 함수값의 분포만 보는 것이 아니라, 학습 중 뉴런들의
+\textbf{분포 자체}가 어떻게 움직이는지를 본다. finite network의 뉴런을 particle로 보고 empirical
+measure를 만들면, infinite-width limit에서 particle ODE가 하나의 nonlinear PDE로 바뀐다.
+\end{presentbox}
+
+% =====================================================================
+\chapter{Two-layer network를 particle system으로 보기}
+% =====================================================================
+
+\section{출발점: 뉴런의 평균으로 쓰인 network}
+
+Mei--Montanari--Nguyen은 다음 two-layer model을 쓴다.
+\[
+  \hat y_N(x;\theta)
+  =\frac1N\sum_{i=1}^{N}\sigma_*(x;\theta_i),
+  \qquad \theta_i\in\R^D.
+\]
+표준적인 경우에는 $\theta_i=(a_i,b_i,w_i)$이고
+\[
+  \sigma_*(x;\theta_i)=a_i\sigma(\inner{w_i}{x}+b_i).
+\]
+
+여기서 $1/N$이 중요하다. width가 커져도 각 뉴런의 합이 폭발하지 않도록 output을 평균낸다.
+
+\section{square loss를 pairwise interaction energy로 전개}
+
+population square risk를
+\[
+  \Risk_N(\theta_1,\ldots,\theta_N)
+  =\E\Bigl[(Y-\hat y_N(X;\theta))^2\Bigr]
+\]
+라고 두자. 괄호를 그대로 전개하면
+\begin{align*}
+\Risk_N
+&=\E[Y^2]
+  -2\E\left[Y\frac1N\sum_{i=1}^N\sigma_*(X;\theta_i)\right]
+  +\E\left[\left(\frac1N\sum_{i=1}^N\sigma_*(X;\theta_i)\right)^2\right]\\
+&=\E[Y^2]
+  -\frac{2}{N}\sum_{i=1}^N \E[Y\sigma_*(X;\theta_i)]\\
+&\qquad
+  +\frac1{N^2}\sum_{i,j=1}^N
+  \E[\sigma_*(X;\theta_i)\sigma_*(X;\theta_j)].
+\end{align*}
+
+이제
+\[
+  R_\#:=\E[Y^2],
+\]
+\[
+  V(\theta):=-\E[Y\sigma_*(X;\theta)],
+\]
+\[
+  U(\theta,\theta')
+  :=\E[\sigma_*(X;\theta)\sigma_*(X;\theta')]
+\]
+라고 정의하면
+\begin{equation}
+\boxed{
+  \Risk_N(\theta)
+  =R_\#+\frac{2}{N}\sum_{i=1}^N V(\theta_i)
+  +\frac1{N^2}\sum_{i,j=1}^N U(\theta_i,\theta_j)
+}
+\label{eq:finite-risk}
+\end{equation}
+이 된다.
+
+\begin{paperbox}[--- Mei et al., Eq. (4)]
+위 식이 원 논문의 finite-$N$ risk 표현이다. $U$는 대칭이며 positive semidefinite kernel이다.
+이 표현이 중요한 이유는 loss가 각 neuron index의 이름이 아니라 \textbf{전체 파라미터 분포}에만
+의존한다는 사실을 드러내기 때문이다.
+\end{paperbox}
+
+\section{왜 이것이 ``particle system''인가}
+
+$\theta_i$를 $D$차원 공간에서 움직이는 particle의 위치라고 생각한다. 그러면
+$V(\theta_i)$는 한 particle에 작용하는 외부 potential,
+$U(\theta_i,\theta_j)$는 두 particle 사이의 interaction potential처럼 보인다.
+
+특히 \eqref{eq:finite-risk}은
+\[
+  \text{constant}
+  +\text{one-body energy}
+  +\text{pairwise interaction energy}
+\]
+의 형태다. statistical mechanics의 mean-field particle model과 같은 수학 구조가 생긴다.
+
+\section{finite-width gradient의 크기와 time scaling}
+
+$U$가 대칭이라고 하자. $\theta_i$에 대해 미분하면
+\begin{align*}
+\grad_{\theta_i}\Risk_N
+&=\frac{2}{N}\grad V(\theta_i)
+ +\frac1{N^2}\sum_{j=1}^N\grad_1U(\theta_i,\theta_j)
+ +\frac1{N^2}\sum_{j=1}^N\grad_2U(\theta_j,\theta_i)\\
+&=\frac{2}{N}\grad V(\theta_i)
+ +\frac{2}{N^2}\sum_{j=1}^N\grad_1U(\theta_i,\theta_j).
+\end{align*}
+
+따라서 보통의 Euclidean gradient flow
+\[
+  \frac{\dd\theta_i}{\dd s}=-\grad_{\theta_i}\Risk_N
+\]
+는 속도가 $O(1/N)$이다. width를 키운 채 같은 $s$를 보면 뉴런이 거의 움직이지 않는다.
+
+mean-field dynamics에서는 원래 gradient-flow 시간 $s$의 $s=Nt$까지를 macroscopic time $t$로 묶어 본다. 즉 $t=s/N$으로 두면
+\begin{align*}
+\frac{\dd\theta_i}{\dd t}
+&=N\frac{\dd\theta_i}{\dd s}\\
+&=-2\grad V(\theta_i)
+  -\frac{2}{N}\sum_{j=1}^N\grad_1U(\theta_i,\theta_j).
+\end{align*}
+이제 $N\to\infty$여도 velocity가 $O(1)$로 남는다.
+
+\begin{warningbox}[--- ``infinite width에서 parameter가 안 움직인다''는 말의 조건]
+parameter movement는 parameterization과 time/learning-rate scaling에 의존한다.
+위 $1/N$ output scaling에서 mean-field time을 쓰면 각 neuron이 $O(1)$ 거리만큼 움직이는
+nonlinear feature-learning dynamics가 남는다. width만 보고 lazy 여부를 결정하면 안 된다.
+\end{warningbox}
+
+\begin{presentbox}
+두 층 network의 square loss를 전개하면 one-body potential $V$와 pair interaction $U$의 합이 된다.
+그래서 neuron을 particle로 볼 수 있다. 그리고 $1/N$ output scaling에서는 finite-width gradient가
+$O(1/N)$이므로, mean-field limit을 볼 때는 학습 시간을 그에 맞게 rescale해야 한다.
+\end{presentbox}
+
+% =====================================================================
+\chapter{Empirical measure와 infinite-width risk}
+\begingroup
+\setlength{\abovedisplayskip}{6pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{6pt plus 2pt minus 2pt}
+\setlength{\abovedisplayshortskip}{3pt plus 2pt}
+\setlength{\belowdisplayshortskip}{4pt plus 2pt minus 1pt}
+\setlength{\parskip}{0.36em}
+% =====================================================================
+
+\section{순열 대칭을 없애는 empirical measure}
+
+network output은 neuron의 순서를 바꿔도 변하지 않는다. 따라서
+$(\theta_1,\ldots,\theta_N)$ 전체를 상태로 쓰면 같은 network를 $N!$번 중복 표현한다.
+
+이를 제거하는 객체가
+\begin{equation}
+\boxed{
+  \hat\rho_N
+  :=\frac1N\sum_{i=1}^{N}\delta_{\theta_i}
+}
+\label{eq:empirical-measure}
+\end{equation}
+이다. 그러면 임의의 test function $\varphi$에 대해
+\[
+  \int \varphi(\theta)\,\hat\rho_N(\dd\theta)
+  =\frac1N\sum_{i=1}^N\varphi(\theta_i).
+\]
+즉 ``뉴런 전체에 대한 평균''은 empirical measure에 대한 적분으로 바뀐다.
+
+\section{finite risk가 measure functional로 정확히 다시 써진다}
+
+\eqref{eq:finite-risk}에 \eqref{eq:empirical-measure}를 대입하면
+\[
+  \frac1N\sum_iV(\theta_i)
+  =\int V(\theta)\,\hat\rho_N(\dd\theta),
+\]
+그리고
+\[
+  \frac1{N^2}\sum_{i,j}U(\theta_i,\theta_j)
+  =\iint U(\theta,\theta')
+  \hat\rho_N(\dd\theta)\hat\rho_N(\dd\theta').
+\]
+따라서 probability measure $\rho$에 대해
+\begin{equation}
+\boxed{
+\Risk(\rho)
+=R_\#+2\int V(\theta)\rho(\dd\theta)
++\iint U(\theta,\theta')\rho(\dd\theta)\rho(\dd\theta')
+}
+\label{eq:measure-risk}
+\end{equation}
+를 정의하면 정확히
+\[
+  \Risk_N(\theta_1,\ldots,\theta_N)=\Risk(\hat\rho_N)
+\]
+이다.
+
+\begin{paperbox}[--- Mei et al., Eq. (5)]
+원문은 $\Risk$ 대신 $R$을 사용한다. 이 식이 ``infinite-width objective''다.
+$N\to\infty$는 단순히 sum을 integral로 바꾸는 것이 아니라,
+최적화 변수를 $\R^{ND}$의 vector에서 $\mathcal P(\R^D)$의 probability measure로 바꾼다.
+\end{paperbox}
+
+\section{첫 번째 variation: measure 공간에서의 gradient 역할}
+
+Euclidean 함수 $F(x)$의 gradient를 만들려면 $F(x+\varepsilon v)$를 1차까지 전개한다.
+measure functional도 똑같이 한다.
+
+총 질량을 보존하는 signed perturbation $\chi$를 잡아
+\[
+  \rho_\varepsilon=\rho+\varepsilon\chi,
+  \qquad \chi(\R^D)=0
+\]
+라고 두자. \eqref{eq:measure-risk}에서
+\begin{align*}
+\Risk(\rho_\varepsilon)
+&=R_\#+2\int V\dd(\rho+\varepsilon\chi)\\
+&\quad+\iint U(\theta,\theta')
+   (\rho+\varepsilon\chi)(\dd\theta)
+   (\rho+\varepsilon\chi)(\dd\theta').
+\end{align*}
+
+항별로 전개하면
+\begin{align*}
+\Risk(\rho_\varepsilon)-\Risk(\rho)
+&=2\varepsilon\int V(\theta)\chi(\dd\theta)\\
+&\quad+2\varepsilon\iint U(\theta,\theta')
+      \rho(\dd\theta')\chi(\dd\theta)\\
+&\quad+\varepsilon^2\iint U(\theta,\theta')
+      \chi(\dd\theta)\chi(\dd\theta').
+\end{align*}
+
+따라서
+\[
+  \Psi(\theta;\rho)
+  :=V(\theta)+\int U(\theta,\theta')\rho(\dd\theta')
+\]
+라고 두면
+\begin{equation}
+\boxed{
+  \frac{\delta\Risk}{\delta\rho}(\theta)
+  =2\Psi(\theta;\rho)
+}
+\label{eq:first-variation}
+\end{equation}
+이다. probability measure에서는 additive constant가 first variation에 추가되어도
+mass-zero perturbation에 대한 directional derivative는 같으므로, 상수까지는 유일하지 않다.
+
+\begin{suppbox}[--- functional derivative의 정의]
+위 계산은 논문의 notation을 이해하기 위한 보충 전개다. 엄밀히는
+\[
+\left.\frac{\dd}{\dd\varepsilon}\Risk(\rho+\varepsilon\chi)\right|_{\varepsilon=0}
+=\int \frac{\delta\Risk}{\delta\rho}(\theta)\chi(\dd\theta)
+\]
+를 만족시키는 함수를 first variation이라 부른다. 여기서는 그 함수가 $2\Psi$다.
+\end{suppbox}
+
+\section{measure에 대해 convex하다는 말}
+
+$U$가 positive semidefinite kernel이면 $\Risk$는 linear mixture 방향으로 convex하다.
+$\rho_s=(1-s)\rho_0+s\rho_1$와 $\chi=\rho_1-\rho_0$를 두면
+\[
+  \rho_s=\rho_0+s\chi.
+\]
+$\Risk(\rho_s)$를 $s$로 두 번 미분하면
+\[
+  \frac{\dd^2}{\dd s^2}\Risk(\rho_s)
+  =2\iint U(\theta,\theta')\chi(\dd\theta)\chi(\dd\theta')\ge0.
+\]
+
+하지만 이 사실만으로 Wasserstein gradient flow의 global convergence가 자동으로 나오지는 않는다.
+이 차이는 뒤에서 다시 본다.
+
+\begin{presentboxcompact}
+empirical measure로 loss를 $\Risk(\rho)$로 정확히 쓰면 first variation은 $2\Psi$다.
+다만 measure-convexity와 Wasserstein geometry는 다르므로, convexity만으로 global convergence를 결론낼 수 없다.
+\end{presentboxcompact}
+
+% =====================================================================
+\endgroup
+\chapter{Continuity equation과 Wasserstein gradient flow}
+% =====================================================================
+
+\section{움직이는 particle은 어떤 PDE를 만드는가}
+
+particle들이 공통 velocity field $v_t$를 따라
+\[
+  \dot\theta_i(t)=v_t(\theta_i(t))
+\]
+로 움직인다고 하자. empirical measure는
+\[
+  \hat\rho_N(t)=\frac1N\sum_i\delta_{\theta_i(t)}.
+\]
+
+smooth test function $\varphi$에 대해
+\begin{align*}
+\frac{\dd}{\dd t}\int\varphi(\theta)\hat\rho_N(t,\dd\theta)
+&=\frac1N\sum_i\frac{\dd}{\dd t}\varphi(\theta_i(t))\\
+&=\frac1N\sum_i\inner{\grad\varphi(\theta_i(t))}{\dot\theta_i(t)}\\
+&=\int\inner{\grad\varphi(\theta)}{v_t(\theta)}\hat\rho_N(t,\dd\theta).
+\end{align*}
+
+integration by parts를 형식적으로 적용하면
+\[
+\int\inner{\grad\varphi}{v_t}\rho_t\dd\theta
+=-\int\varphi\,\diver(\rho_tv_t)\dd\theta.
+\]
+따라서 weak sense에서
+\begin{equation}
+\boxed{
+  \partial_t\rho_t+\diver(\rho_tv_t)=0
+}
+\label{eq:continuity}
+\end{equation}
+를 얻는다. 이것이 continuity equation이다.
+
+\section{mean-field velocity를 넣기}
+
+앞 장에서
+\[
+  \frac{\delta\Risk}{\delta\rho}=2\Psi
+\]
+였다. risk를 가장 빠르게 줄이는 transport velocity는
+\[
+  v_t(\theta)
+  =-\xi(t)\grad_\theta\frac{\delta\Risk}{\delta\rho}(\theta)
+  =-2\xi(t)\grad_\theta\Psi(\theta;\rho_t)
+\]
+로 잡는다.
+
+이를 \eqref{eq:continuity}에 넣으면
+\begin{equation}
+\boxed{
+  \partial_t\rho_t
+  =2\xi(t)\diver\!\left(
+    \rho_t\grad_\theta\Psi(\theta;\rho_t)
+  \right)
+}
+\label{eq:mei-pde}
+\end{equation}
+가 나온다.
+
+\begin{paperbox}[--- Mei et al., Eq. (7)--(8)]
+원문의 distributional dynamics(DD)가 정확히 \eqref{eq:mei-pde}다.
+여기서 $\xi(t)$는 learning-rate schedule의 연속시간 버전이다.
+부호를 확인할 때는 continuity equation의 $\partial_t\rho+\nabla\cdot(\rho v)=0$와
+$v=-2\xi\nabla\Psi$를 함께 기억하면 된다.
+\end{paperbox}
+
+\section{\texorpdfstring{$W_2$}{W2}는 ``분포를 옮기는 데 필요한 제곱거리''다}
+
+$\rho_0,\rho_1\in\Ptwo(\R^D)$에 대해
+\begin{equation}
+W_2^2(\rho_0,\rho_1)
+=\inf_{\gamma\in\Pi(\rho_0,\rho_1)}
+\iint\norm{\theta-\theta'}^2\,
+\gamma(\dd\theta,\dd\theta').
+\label{eq:w2}
+\end{equation}
+$\Pi(\rho_0,\rho_1)$는 두 marginal이 각각 $\rho_0,\rho_1$인 coupling의 집합이다.
+
+Euclidean distance가 한 점을 얼마나 멀리 움직였는지를 재는 것이라면,
+$W_2$는 전체 mass를 얼마나 멀리 운반했는지를 잰다.
+
+\section{JKO step: Euclidean proximal step의 measure 버전}
+
+Euclidean gradient flow $\dot x=-\grad F(x)$의 backward-Euler discretization은
+\[
+  \frac{x_{k+1}-x_k}{\tau}=-\grad F(x_{k+1}).
+\]
+이 식은 다음 proximal minimization의 1차 optimality condition과 같다.
+\begin{equation}
+  x_{k+1}
+  =\argmin_x\left\{
+     F(x)+\frac1{2\tau}\norm{x-x_k}^2
+   \right\}.
+\label{eq:prox-euclidean}
+\end{equation}
+
+Euclidean squared distance를 $W_2^2$로 바꾸면
+\begin{equation}
+  \rho_{t+\tau}
+  \approx
+  \argmin_{\rho\in\mathcal P(\R^D)}
+  \left\{
+    \Risk(\rho)
+    +\frac{1}{2\xi(t)\tau}W_2^2(\rho,\rho_t)
+  \right\}.
+\label{eq:jko}
+\end{equation}
+
+\begin{paperbox}[--- Mei et al., Eq. (9)--(10)]
+원문은 $W_2$ 정의를 제시한 직후 \eqref{eq:jko}를 distributional dynamics의
+gradient-flow 해석으로 소개한다. 이것은 explicit gradient descent가 아니라
+Wasserstein 공간의 \textbf{implicit/proximal} time discretization이라는 점에 주의한다.
+\end{paperbox}
+
+\section{risk dissipation을 직접 계산}
+
+\eqref{eq:mei-pde}를 따라 $\Risk(\rho_t)$의 시간 미분을 계산한다.
+\begin{align*}
+\frac{\dd}{\dd t}\Risk(\rho_t)
+&=\int
+  \frac{\delta\Risk}{\delta\rho}(\theta)
+  \partial_t\rho_t(\theta)\dd\theta\\
+&=\int 2\Psi(\theta;\rho_t)\,
+  2\xi(t)\diver\left(
+    \rho_t\grad\Psi(\theta;\rho_t)
+  \right)\dd\theta\\
+&=-4\xi(t)
+  \int \rho_t(\theta)
+  \norm{\grad\Psi(\theta;\rho_t)}^2\dd\theta\\
+&\le0.
+\end{align*}
+마지막 줄은 boundary term이 사라진다는 충분한 regularity/decay를 가정한 formal 계산이다.
+
+\begin{keybox}
+Euclidean GF의
+\[
+  \frac{\dd}{\dd t}F(x(t))=-\norm{\grad F(x(t))}^2
+\]
+에 대응하여, Wasserstein GF에서는
+\[
+  \frac{\dd}{\dd t}\Risk(\rho_t)
+  =-4\xi(t)\int\rho_t\norm{\grad\Psi}^2\le0
+\]
+가 된다. ``gradient norm squared''가 particle distribution에 대한 평균으로 바뀐 것이다.
+\end{keybox}
+
+\begin{presentbox}
+particle이 velocity field를 따라 움직이면 empirical density는 continuity equation을 만족한다.
+그 velocity를 measure risk의 first variation의 음의 gradient로 잡으면 Mei et al.의 PDE가 나온다.
+그래서 이 PDE는 Wasserstein metric에서의 gradient flow이고, Euclidean GF와 마찬가지로 risk가
+시간에 따라 감소하는 energy-dissipation identity를 가진다.
+\end{presentbox}
+
+% =====================================================================
+\chapter{Mei--Montanari--Nguyen: particle에서 PDE로}
+% =====================================================================
+
+\section{SGD의 scaling}
+
+Mei et al.은 one-pass SGD를
+\begin{equation}
+  \theta_i^{k+1}
+  =\theta_i^k
+  +2s_k\bigl(Y_k-\hat y_N(X_k;\theta^k)\bigr)
+  \grad_{\theta_i}\sigma_*(X_k;\theta_i^k)
+\label{eq:mei-sgd}
+\end{equation}
+로 둔다. step size는
+\[
+  s_k=\varepsilon\xi(k\varepsilon)
+\]
+이다.
+
+$\hat y_N$에 $1/N$이 있으므로 $\Risk_N$의 진짜 Euclidean gradient는 $O(1/N)$이다.
+따라서 \eqref{eq:mei-sgd}는 finite-dimensional risk에 대한 표준 gradient step을 그대로 쓴 것이라기보다,
+mean-field time scale을 유지하도록 learning rate를 $N$배 rescale한 dynamics로 이해해야 한다.
+
+\section{limit statement의 구조}
+
+iteration $k$와 연속시간 $t$를
+\[
+  t=k\varepsilon
+\]
+로 맞춘다. $k\sim1/\varepsilon$개의 작은 step을 보면서 동시에 $N\to\infty$를 보낸다.
+
+원문의 결론은 개념적으로
+\begin{equation}
+  \hat\rho^{(N)}_{\lfloor t/\varepsilon\rfloor}
+  \Longrightarrow \rho_t
+\label{eq:weak-convergence}
+\end{equation}
+이며 $\rho_t$는 \eqref{eq:mei-pde}의 해다.
+
+\begin{paperbox}[--- Mei et al., Theorem 3]
+가정 A1--A3 아래에서 iid initialization을 사용하고
+$N\to\infty$, $\varepsilon_N\to0$이 적절히 함께 일어나면
+\eqref{eq:weak-convergence}가 almost surely 성립한다.
+또한 bounded Lipschitz test function과 risk에 대해 finite-time non-asymptotic error bound를 준다.
+원문에서 핵심 error scale은
+\[
+\operatorname{err}_{N,D}(z)
+=\bigl(N^{-1/2}\vee\sqrt{\varepsilon}\,\bigr)
+\left[\sqrt{D+\log(N/\varepsilon)}+z\right]
+\]
+형태로 읽을 수 있으며, bound에는 $e^{CT}$ factor가 붙는다. 정확한 상수와 가정은 Theorem 3을 따른다.
+\end{paperbox}
+
+\section{propagation of chaos는 무엇을 뜻하는가}
+
+``chaos''는 dynamics가 혼란스럽다는 뜻이 아니다. 초기 particle들이 iid라면,
+상호작용하는 finite-$N$ particle들의 임의의 고정된 유한 부분집합이 $N\to\infty$에서
+서로 독립인 nonlinear process처럼 행동한다는 뜻이다.
+
+이를 두 시스템으로 나누어 보면 직관이 명확하다.
+
+\textbf{상호작용 particle:}
+\[
+  \dot\theta_i^N(t)
+  =-2\xi(t)\grad\Psi(\theta_i^N(t);\hat\rho_N(t)).
+\]
+
+\textbf{nonlinear independent copy:}
+\[
+  \dot{\bar\theta}_i(t)
+  =-2\xi(t)\grad\Psi(\bar\theta_i(t);\rho_t),
+  \qquad \Law(\bar\theta_i(t))=\rho_t.
+\]
+두 번째 시스템에서는 각 $\bar\theta_i$가 empirical measure가 아니라 deterministic law $\rho_t$를
+통해 상호작용하므로, iid initialization이면 서로 iid가 유지된다.
+
+propagation of chaos proof는 대략
+\[
+  \theta_i^N(t)\approx\bar\theta_i(t)
+\]
+를 uniform finite time에서 보이고, law of large numbers를 결합한다.
+
+\begin{suppbox}[--- coupling + Grönwall의 전형적 구조]
+같은 initialization을 두 시스템에 coupling했다고 하자. Lipschitz drift라면
+\begin{align*}
+\frac{\dd}{\dd t}\norm{\theta_i^N-\bar\theta_i}
+&\lesssim
+\norm{\theta_i^N-\bar\theta_i}
++\text{empirical fluctuation},
+\end{align*}
+꼴을 얻는다. 이를 적분하고 Grönwall inequality를 쓰면
+\[
+  \sup_{s\le T}\norm{\theta_i^N(s)-\bar\theta_i(s)}
+  \lesssim e^{CT}\times(\text{finite-}N\text{ fluctuation}).
+\]
+원문의 proof는 SGD discretization error와 finite-$N$ concentration까지 함께 다룬다.
+\end{suppbox}
+
+\section{왜 PDE가 유용한가}
+
+finite network에서는 $N$개의 neuron label이 모두 남지만, PDE에서는 permutation symmetry가 자동으로
+quotient된다. 또한 데이터 분포가 rotation symmetry를 가지면 $\rho_t$에도 같은 symmetry를 impose하여
+고차원 dynamics를 몇 개의 radial variable로 줄일 수 있다.
+
+Mei et al.의 Gaussian examples가 바로 이 장점을 사용한다. 특정 문제에서는 width $N$이 PDE 자체에서
+사라지고, convergence time이 $N$과 독립적으로 기술된다.
+
+\begin{warningbox}[--- theorem을 과장하지 말 것]
+Theorem 3은 ``모든 wide neural network의 SGD가 이 PDE를 따른다''는 정리가 아니다.
+논문은 two-layer model, 특정 scaling, iid initialization, boundedness/Lipschitz 가정, one-pass sampling 등의
+조건 아래 limit과 finite-time approximation을 보인다.
+\end{warningbox}
+
+\begin{presentbox}
+Mei et al.의 핵심 정리는 ``wide network가 그냥 큰 ODE다''에서 끝나지 않는다.
+$N\to\infty$와 step size $\varepsilon\to0$를 함께 보내면 empirical parameter distribution이
+nonlinear PDE의 해로 수렴한다. proof의 확률론적 이름이 propagation of chaos이고,
+finite particle과 독립 nonlinear copy를 coupling한 뒤 concentration과 Grönwall을 쓰는 구조다.
+\end{presentbox}
+
+% =====================================================================
+\chapter{Fixed point와 convexity: 왜 아직 문제가 남는가}
+% =====================================================================
+
+\section{risk가 감소한다고 global optimum에 가는 것은 아니다}
+
+앞에서
+\[
+  \frac{\dd}{\dd t}\Risk(\rho_t)\le0
+\]
+를 보였다. 그러나 감소한다는 사실만으로 global minimum convergence는 나오지 않는다.
+
+PDE의 current를
+\[
+  J_t(\theta)
+  =-2\xi(t)\rho_t(\theta)\grad\Psi(\theta;\rho_t)
+\]
+라고 하자. fixed point에서는 mass flow가 없어야 한다.
+
+Mei et al.은 충분한 regularity 아래 fixed point를
+\begin{equation}
+\boxed{
+\supp(\rho)
+\subseteq
+\{\theta:\grad_\theta\Psi(\theta;\rho)=0\}
+}
+\label{eq:fixed-point}
+\end{equation}
+로 characterize한다.
+
+\begin{paperbox}[--- Mei et al., Proposition 2]
+$V,U$가 differentiable이고 gradient가 bounded이면 $\Risk(\rho_t)$는 non-increasing이다.
+또한 \eqref{eq:fixed-point}가 fixed point의 필요충분조건이다.
+원문은 global optimizer는 fixed point지만 fixed point의 집합이 일반적으로 더 크다고 명시한다.
+\end{paperbox}
+
+\section{global optimum의 조건은 더 강하다}
+
+measure risk의 first variation이 $2\Psi$이므로, probability mass를 어느 위치로 옮겨도 risk를 더 줄일 수
+없으려면 support 위의 $\Psi$가 전역적으로 최소여야 한다. 원문 Proposition 1의 조건은
+\[
+  \supp(\rho_*)
+  \subseteq\argmin_{\theta\in\R^D}\Psi(\theta;\rho_*)
+\]
+형태다.
+
+fixed point 조건은 support 위에서 $\grad\Psi=0$만 요구하지만,
+global optimum 조건은 support가 $\Psi$의 global minimizer에 놓이기를 요구한다.
+
+\section{``measure에 대해 convex''인데 왜 stationary trap이 가능한가}
+
+여기가 가장 헷갈리는 부분이다.
+
+\begin{enumerate}
+  \item $\Risk(\rho)$의 convexity는
+  \[
+    \rho_s=(1-s)\rho_0+s\rho_1
+  \]
+  같은 \textbf{linear interpolation}에 대한 convexity다.
+
+  \item Wasserstein gradient flow는 mass를 순간이동시키지 않는다. continuity equation을 따라
+  현재 support에서 velocity field로 mass를 \textbf{운반}한다.
+
+  \item 따라서 현재 support의 모든 점에서 $\grad\Psi=0$이면 transport velocity가 0이 되어 멈출 수 있다.
+  다른 위치에 더 낮은 $\Psi$가 있어도 그곳으로 mass가 teleport되지 않는다.
+\end{enumerate}
+
+즉 linear-convexity와 $W_2$-geodesic convexity는 다른 개념이다.
+
+\begin{suppbox}[--- 두 geometry의 차이를 한 줄로]
+Euclidean convex optimization에서는 변수 자체가 선형 공간의 점이므로
+``convex objective + stationary point''가 global optimum을 준다.
+여기서는 objective는 measure의 linear structure에서 convex하지만 dynamics는 transport metric을 따른다.
+따라서 필요한 것은 보통 Wasserstein geodesic convexity 또는 dynamics에 맞는 추가 구조다.
+\end{suppbox}
+
+\section{noisy SGD에서는 diffusion이 무엇을 바꾸는가}
+
+Mei et al.은 Gaussian noise와 $\ell_2$ regularization을 넣은 SGD의 limit으로
+\begin{equation}
+\partial_t\rho_t
+=2\xi(t)\diver\bigl(\rho_t\grad\Psi_\lambda(\theta;\rho_t)\bigr)
++2\xi(t)\beta^{-1}\Delta\rho_t
+\label{eq:diffusion-pde}
+\end{equation}
+를 얻는다.
+
+diffusion term은 mass가 support 밖으로 퍼질 수 있게 하며, 이에 대응하는 free energy는 risk에
+entropy term을 추가한 형태다. Mei et al.의 finite-temperature convergence theorem은 A1--A4와
+$1/K_0\le \lambda\le K_0$ 같은 coercive regularization 조건 아래 regularized free energy의
+unique minimizer가 존재하고, diffusion PDE가 그 minimizer로 수렴함을 보인다.
+
+\begin{warningbox}
+noisy SGD의 global convergence 정리를 noiseless PDE에 그대로 옮기면 안 된다.
+논문 자체가 noiseless dynamics에는 일반적인 global convergence theorem을 주지 못한다고 구분한다.
+\end{warningbox}
+
+\begin{presentbox}
+measure risk가 convex하다는 말만으로 dynamics의 global convergence가 끝나지 않는다.
+Wasserstein flow는 mass를 실제로 운반해야 하므로 local mass conservation이 있고,
+$\nabla\Psi=0$인 support에서는 멈출 수 있다. 그래서 Mei et al.은 fixed-point 조건과 global-optimum
+조건을 분리하고, noisy case에서는 diffusion과 entropy가 landscape를 더 강하게 regularize한다.
+\end{presentbox}
+
+% =====================================================================
+\chapter{Chizat--Bach: optimal transport로 본 global convergence}
+% =====================================================================
+
+\section{조금 더 일반적인 measure optimization}
+
+Chizat--Bach은 Hilbert space $\mathcal F$에서 feature map $\Phi:\Omega\to\mathcal F$를 두고
+\begin{equation}
+  F(\mu)
+  =R\left(\int_\Omega\Phi(u)\mu(\dd u)\right)
+  +\int_\Omega V(u)\mu(\dd u)
+\label{eq:chizat-functional}
+\end{equation}
+를 최소화한다. $R$은 smooth convex loss이고 $V$는 regularizer다.
+
+finite particle approximation은
+\[
+  \mu_m=\frac1m\sum_{i=1}^{m}\delta_{u_i}
+\]
+를 대입한
+\[
+  F_m(u_1,\ldots,u_m)=F(\mu_m)
+\]
+이다.
+
+\section{particle gradient flow에서 Wasserstein flow로}
+
+논문은 particle flow의 gradient를 $m$배 rescale한다.
+이는 각 particle의 mass가 $1/m$이기 때문에 many-particle limit에서 $O(1)$ velocity를 유지하는
+natural metric normalization이다.
+
+smooth case를 단순화해서 쓰면
+\[
+  \dot u_i(t)=-\grad_u F'(\mu_{m,t})(u_i(t)),
+  \qquad
+  \mu_{m,t}=\frac1m\sum_i\delta_{u_i(t)}.
+\]
+이에 대응하는 continuum equation은
+\begin{equation}
+  \partial_t\mu_t
+  =-\diver(v_t\mu_t),
+  \qquad
+  v_t\in-\partial F'(\mu_t).
+\label{eq:chizat-wgf}
+\end{equation}
+
+\begin{paperbox}[--- Chizat--Bach, Definition 2.4 / Theorem 2.6]
+Definition 2.4는 \eqref{eq:chizat-wgf}를 Wasserstein gradient flow로 정의한다.
+Theorem 2.6은 초기 empirical measures $\mu_{m,0}\to\mu_0$ in $W_2$이면,
+finite particle gradient flows의 $\mu_{m,t}$가 unique Wasserstein gradient flow $\mu_t$로 수렴한다고 보인다.
+\end{paperbox}
+
+\section{Mei et al.과 무엇이 같은가}
+
+두 논문은 notation과 출발점이 다르지만 구조는 같다.
+\[
+\begin{aligned}
+\text{many particles}
+&\longrightarrow \text{empirical measure}
+\longrightarrow \text{continuity equation}\\
+&\longrightarrow \text{Wasserstein gradient flow}.
+\end{aligned}
+\]
+
+Mei et al.은 stochastic SGD와 explicit population square risk에서 PDE approximation을 정량화하는 데
+강점이 있고, Chizat--Bach은 measure optimization과 homogeneity를 이용해 global optimality의 구조를
+추적한다.
+
+\section{global convergence는 어떤 추가 구조를 쓰는가}
+
+Chizat--Bach의 중요한 메시지는 ``$F$가 convex이므로 끝''이 아니다.
+particle parameterization은 여전히 non-convex이고, Wasserstein stationary point가 자동으로 global optimum도 아니다.
+
+논문은 feature map의 positive homogeneity와 initialization support의 separation condition을 사용한다.
+예를 들어 2-homogeneous setting의 Theorem 3.3은 다음 구조다.
+
+\begin{paperbox}[--- Theorem 3.3의 핵심 형태]
+기술적 Assumptions 3.2와 support-separation initialization을 만족하는 Wasserstein gradient flow
+$\mu_t$가 $W_2$에서 $\mu_\infty$로 수렴한다고 하자. 그러면 $\mu_\infty$는 $F$의 global minimizer다.
+또한 suitably initialized particle flows에 대해 many-particle limit과 long-time limit을 결합하여
+\[
+  \lim_{m,t\to\infty}F(\mu_{m,t})
+  =\min_{\mu\in\mathcal M_+(\Omega)}F(\mu)
+\]
+를 얻는다.
+\end{paperbox}
+
+여기서 중요한 단어는 ``\textbf{if the flow converges}''와 ``\textbf{initialization condition}''이다.
+정리가 모든 초기화에서 자동 수렴을 보인다고 읽으면 안 된다.
+
+\section{ReLU에서 homogeneity가 왜 자연스러운가}
+
+ReLU는
+\[
+  \sigma(cz)=c\sigma(z),\qquad c>0
+\]
+인 1-homogeneous activation이다. output weight까지 함께 scaling하면 한 뉴런 feature는 종종
+2-homogeneous parameterization을 갖는다.
+
+예를 들어 bias를 생략하고
+\[
+  \Phi(a,w)(x)=a\,\sigma(\inner{w}{x})
+\]
+라 두면 $c>0$에 대해
+\[
+  \Phi(ca,cw)(x)
+  =ca\,\sigma(c\inner{w}{x})
+  =c^2a\sigma(\inner{w}{x})
+  =c^2\Phi(a,w)(x).
+\]
+이 radial scaling 구조가 particle을 새로운 방향으로 ``escape''시키는 global-convergence argument에서
+중요하게 쓰인다.
+
+\begin{warningbox}
+NeurIPS 본문의 ReLU discussion은 smoothness 문제 때문에 ``formal level''이라는 단서를 둔다.
+ReLU의 differential discontinuity를 무시한 채 smooth theorem이 그대로 적용된다고 쓰면 부정확하다.
+후속/appendix treatment와 regularized parameterization을 함께 봐야 한다.
+\end{warningbox}
+
+\begin{presentbox}
+Chizat--Bach은 mean-field PDE를 단지 approximation 도구로 쓰는 데서 한 단계 더 간다.
+Wasserstein flow가 어떤 조건에서 global minimizer에 도달하는지를 optimal-transport geometry와
+homogeneity로 분석한다. 다만 핵심 정리는 convergence와 initialization/support 조건을 가정하므로,
+``infinite width이면 항상 global optimum''으로 요약하면 안 된다.
+\end{presentbox}
+
+% =====================================================================
+\chapter{Infinite width는 하나의 regime이 아니다}
+% =====================================================================
+
+\section{mean-field와 lazy training의 차이}
+
+두-layer model을 추상적으로
+\begin{equation}
+  h_m(w)=\alpha(m)\sum_{i=1}^{m}\phi(\theta_i)
+\label{eq:alpha-scaling}
+\end{equation}
+라고 쓰자. width를 $m\to\infty$로 보내도 $\alpha(m)$을 어떻게 잡는지에 따라 dynamics가 달라진다.
+
+Chizat--Oyallon--Bach은 iid initialization과 centering 조건 아래, lazy-training indicator가 대략
+\begin{equation}
+  \E[\kappa_{h_m}(w_0)]
+  \lesssim m^{-1/2}+(m\alpha(m))^{-1}
+\label{eq:lazy-indicator}
+\end{equation}
+로 제어된다고 설명한다.
+
+따라서 $m\alpha(m)\to\infty$이면 width가 커질수록 lazy regime으로 가는 경향이 있다.
+반대로
+\[
+  \boxed{\alpha(m)=1/m}
+\]
+은 $m\alpha(m)=1$이므로 이 criterion으로 lazy가 강제되지 않는 critical scaling이며,
+논문은 이것을 non-degenerate PDE로 이어지는 mean-field scaling으로 지목한다.
+
+\begin{paperbox}[--- Chizat--Oyallon--Bach, Sec. 1.2]
+원문은 two-layer model에서 $\alpha(m)=1/m$을 mean-field limit의 critical scaling으로 설명하고,
+$m\alpha(m)\to\infty$인 scaling은 large width에서 lazy behavior로 향할 수 있음을 구분한다.
+\end{paperbox}
+
+\section{lazy training은 정확히 무엇인가}
+
+smooth model $h(w)$를 initialization $w_0$에서 선형화하면
+\[
+  \bar h(w)=h(w_0)+Dh(w_0)(w-w_0).
+\]
+lazy regime은 nonlinear training path가 이 linearized model의 training path와 끝까지 가깝게 유지되는 경우다.
+
+scaled objective를
+\[
+  F_\alpha(w)=\frac1{\alpha^2}R(\alpha h(w))
+\]
+라고 두면, $h(w_0)=0$일 때 Theorem 2.2는 fixed time horizon $T$에 대해
+\[
+  \sup_{t\le T}\norm{w_\alpha(t)-w_0}=O(1/\alpha),
+\]
+\[
+  \sup_{t\le T}\norm{w_\alpha(t)-\bar w_\alpha(t)}=O(1/\alpha^2),
+\]
+\[
+  \sup_{t\le T}
+  \norm{\alpha h(w_\alpha(t))-\alpha\bar h(\bar w_\alpha(t))}
+  =O(1/\alpha)
+\]
+를 준다.
+
+parameter movement가 작으므로 Jacobian $Dh(w)$가 거의 고정되고, 결과적으로 kernel-like dynamics가 나타난다.
+
+\section{표로 정리하는 두 regime}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.24\textwidth} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+\toprule
+ & Mean-field regime & Lazy / linearized regime \\
+\midrule
+대표 output scaling & $1/m$ & 예: $1/\sqrt m$ 계열 또는 large explicit scale \\
+개별 뉴런 이동 & 적절한 time scale에서 $O(1)$ 가능 & 작음 \\
+feature 변화 & 지속적으로 가능 & initialization feature에 가까움 \\
+limit state & parameter distribution $\rho_t$ & tangent / kernel dynamics \\
+주요 수학 & nonlinear PDE, $W_2$ GF & linearization, tangent kernel \\
+``infinite width''의 역할 & particle law를 deterministic화 & Jacobian/kernel을 고정시키는 limit 가능 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{warningbox}[--- $1/\sqrt m$을 무조건 NTK scaling이라고 부르지 말 것]
+정확한 scaling은 architecture, parameterization, learning-rate normalization에 따라 달라진다.
+위 표는 two-layer centered model의 전형적 대비를 보여주는 것이다.
+``$1/m$ = mean-field, $1/\sqrt m$ = NTK''를 모든 network에 적용하는 규칙으로 외우지 않는다.
+\end{warningbox}
+
+\section{다음 주 NTK와의 연결}
+
+mean-field에서는 state가 $\rho_t$ 자체이므로 feature distribution이 시간에 따라 바뀐다.
+반면 lazy regime에서는
+\[
+  h(w)\approx h(w_0)+Dh(w_0)(w-w_0)
+\]
+이므로 학습을 지배하는 operator가 initialization의 Jacobian으로 고정된다.
+
+다음 주 NTK에서는 이 Jacobian이 만드는 kernel
+\[
+  K_0(x,x')
+  =\inner{\grad_w f(w_0,x)}{\grad_w f(w_0,x')}
+\]
+이 infinite-width limit에서 deterministic해지고, 함수 dynamics가 kernel gradient flow로 닫히는 과정을
+본격적으로 다룬다.
+
+\begin{keybox}
+\textbf{Infinite width는 결론이 아니라 limit를 취하는 축이다.}
+어떤 parameterization과 learning-rate/time scaling을 함께 택하느냐에 따라
+nonlinear mean-field feature learning도, lazy kernel dynamics도 나올 수 있다.
+\end{keybox}
+
+\begin{presentbox}
+``무한 폭이면 NTK''라고 말하면 이번 주와 다음 주를 구분할 수 없다.
+$1/m$ critical scaling에서는 neuron distribution이 실제로 움직이는 nonlinear mean-field PDE가 남는다.
+반대로 scale이 커져 parameter displacement가 작아지면 model이 initialization의 linearization처럼 움직여
+lazy/kernel regime이 된다. width가 아니라 scaling까지 함께 지정해야 dynamics가 정해진다.
+\end{presentbox}
+
+% =====================================================================
+\chapter{발표 준비용 압축 정리}
+% =====================================================================
+
+\section{칠판에 반드시 남길 여섯 식}
+
+\textbf{1. Two-layer network}
+\[
+  f_N(x)=\frac1N\sum_{i=1}^N\sigma_*(x;\theta_i).
+\]
+
+\textbf{2. Empirical measure}
+\[
+  \hat\rho_N=\frac1N\sum_{i=1}^N\delta_{\theta_i}.
+\]
+
+\textbf{3. Measure risk}
+\[
+\Risk(\rho)
+=R_\#+2\int V\dd\rho+\iint U\dd\rho\dd\rho.
+\]
+
+\textbf{4. First variation}
+\[
+  \frac{\delta\Risk}{\delta\rho}(\theta)=2\Psi(\theta;\rho),
+  \qquad
+  \Psi(\theta;\rho)=V(\theta)+\int U(\theta,\theta')\rho(\dd\theta').
+\]
+
+\textbf{5. Mean-field PDE}
+\[
+  \partial_t\rho_t
+  =2\xi(t)\diver(\rho_t\grad\Psi).
+\]
+
+\textbf{6. Energy dissipation}
+\[
+  \frac{\dd}{\dd t}\Risk(\rho_t)
+  =-4\xi(t)\int\rho_t\norm{\grad\Psi}^2\le0.
+\]
+
+\section{발표 순서 추천}
+
+\begin{enumerate}
+  \item \textbf{Motivation:} $N$개 neuron ODE를 계속 추적하는 대신 distribution을 추적하자.
+  \item \textbf{Exact algebra:} square loss를 $V,U$로 전개하고 empirical measure로 rewrite한다.
+  \item \textbf{Geometry:} particle velocity $\Rightarrow$ continuity equation $\Rightarrow$ $W_2$ gradient flow.
+  \item \textbf{Theorem:} Mei et al.의 propagation-of-chaos / particle-to-PDE result.
+  \item \textbf{Subtlety:} risk의 linear convexity와 Wasserstein stationary point는 같은 말이 아니다.
+  \item \textbf{Global convergence:} Chizat--Bach의 homogeneity + initialization 조건.
+  \item \textbf{Bridge:} infinite width에는 mean-field와 lazy regime이 모두 있으며 scaling이 둘을 가른다.
+\end{enumerate}
+
+\section{자주 나오는 질문}
+
+\textbf{Q1. $\rho$는 실제로 학습하는 parameter인가?}
+
+finite network에서는 직접 학습하는 것은 $\theta_i$들이다. $\rho_t$는 이들의 empirical distribution의
+large-width limit이다. continuum formulation에서는 $\rho$ 자체를 optimization variable로 본다.
+
+\textbf{Q2. 왜 ordinary $L^2$ gradient flow가 아니라 Wasserstein gradient flow인가?}
+
+probability mass가 생성/소멸하는 것이 아니라 particle의 이동으로 바뀌기 때문이다.
+continuity equation이 local mass conservation을 강제하고, 그 transport cost가 $W_2$ geometry를 만든다.
+
+\textbf{Q3. measure risk가 convex인데 왜 non-convex optimization을 해결했다고 바로 말하지 못하나?}
+
+convexity는 linear interpolation에 대한 것이고 dynamics는 Wasserstein transport를 따른다.
+$W_2$ stationary-point 집합은 global-minimizer 집합보다 클 수 있다.
+
+\textbf{Q4. propagation of chaos가 independent particle이라는 뜻이면 interaction은 사라지는가?}
+
+개별 pairwise randomness는 사라지지만 interaction은 law $\rho_t$를 통해 남는다.
+그래서 limit ODE/PDE는 여전히 nonlinear하다.
+
+\textbf{Q5. infinite width와 NTK는 같은가?}
+
+아니다. width limit과 함께 어떤 output/learning-rate scaling을 취하는지가 중요하다.
+mean-field scaling에서는 $\rho_t$가 크게 움직일 수 있고, lazy scaling에서는 linearization이 유지된다.
+
+\section{흔한 수학적 실수 체크리스트}
+
+\begin{itemize}
+  \item $\delta\Risk/\delta\rho=\Psi$라고 써 factor $2$를 잃지 않았는가?
+  \item continuity equation의 부호와 velocity의 부호를 동시에 확인했는가?
+  \item Mei PDE의 factor $2\xi(t)$를 빠뜨리지 않았는가?
+  \item $\Risk(\rho)$의 linear convexity를 $W_2$ geodesic convexity라고 부르지 않았는가?
+  \item Theorem 3의 finite-time approximation을 infinite-time convergence로 바꾸지 않았는가?
+  \item Chizat--Bach의 theorem에서 convergence/initialization/homogeneity 가정을 생략하지 않았는가?
+  \item $1/\sqrt m$ vs $1/m$ 구분을 architecture-independent 법칙처럼 말하지 않았는가?
+  \item ``propagation of chaos''를 chaotic dynamics라는 의미로 설명하지 않았는가?
+\end{itemize}
+
+\section{30초 결론}
+
+finite-width two-layer network는 neuron parameter라는 particle들의 상호작용계로 볼 수 있다.
+empirical measure를 상태로 바꾸고 width를 키우면 particle dynamics가 nonlinear continuity PDE로 수렴한다.
+그 PDE는 parameter distribution의 risk를 줄이는 Wasserstein gradient flow이며,
+propagation of chaos가 finite network와 continuum dynamics를 연결한다.
+다만 infinite width만으로 dynamics가 하나로 정해지지는 않는다. $1/m$ mean-field scaling에서는
+feature distribution이 움직이고, lazy scaling에서는 initialization 주변 선형화가 남는다.
+
+\begin{presentbox}
+발표 전체를 한 문장으로 줄이면 이렇다. ``Wide network의 학습을 뉴런 하나하나의 좌표가 아니라
+뉴런 분포의 이동으로 보면, SGD가 Wasserstein gradient flow PDE로 바뀌고, scaling에 따라
+feature-learning mean-field regime과 lazy/kernel regime이 갈린다.''
+\end{presentbox}
+
+% =====================================================================
+\chapter*{참고문헌 및 원문에서 확인할 위치}
+\addcontentsline{toc}{chapter}{참고문헌 및 원문에서 확인할 위치}
+% =====================================================================
+
+\textbf{Song Mei, Andrea Montanari, Phan-Minh Nguyen.}
+``A Mean Field View of the Landscape of Two-Layer Neural Networks.''
+PNAS 115(33), 2018; extended version arXiv:1804.06561.
+
+\begin{itemize}
+  \item Sec. 1.1, Eq. (4)--(10): finite risk, measure risk, DD PDE, $W_2$, JKO interpretation.
+  \item Sec. 3, Theorem 3: SGD $\to$ PDE / propagation of chaos and finite-time error.
+  \item Sec. 3, Proposition 2: risk monotonicity and fixed-point characterization.
+  \item Sec. 3.1: noisy SGD, diffusion PDE, free-energy dissipation.
+\end{itemize}
+\url{https://arxiv.org/abs/1804.06561}
+
+\vspace{0.8em}
+\textbf{Lénaïc Chizat, Francis Bach.}
+``On the Global Convergence of Gradient Descent for Over-parameterized Models using Optimal Transport.''
+NeurIPS 2018.
+
+\begin{itemize}
+  \item Sec. 2.2--2.4: particle gradient flow, Wasserstein gradient flow, many-particle limit.
+  \item Theorem 2.6: empirical particle flows $\to$ unique Wasserstein flow.
+  \item Theorem 3.3 and 3.5: homogeneity/separation assumptions and asymptotic global optimality.
+  \item Sec. 4.2: single-hidden-layer neural-network specialization and ReLU smoothness caveat.
+\end{itemize}
+\url{https://proceedings.neurips.cc/paper/2018/hash/a1afc58c6ca9540d057299ec3016d726-Abstract.html}
+
+\vspace{0.8em}
+\textbf{Lénaïc Chizat, Édouard Oyallon, Francis Bach.}
+``On Lazy Training in Differentiable Programming.'' NeurIPS 2019.
+
+\begin{itemize}
+  \item Sec. 1.1--1.2: lazy training definition, scale criterion, two-layer scaling discussion.
+  \item Sec. 1.2: $\alpha(m)=1/m$ as the critical mean-field scaling in the model considered there.
+  \item Theorem 2.2: finite-horizon closeness to the linearized model for large scale $\alpha$.
+\end{itemize}
+\url{https://papers.nips.cc/paper/8559-on-lazy-training-in-differentiable-programming}
+
+\begin{warningbox}[--- 원문과 이 노트의 경계]
+functional derivative 전개, continuity equation의 test-function derivation, energy-dissipation 계산,
+convexity와 transport geometry의 비교, propagation-of-chaos의 coupling 스케치는 발표 준비를 위해 추가한
+보충 유도다. 원 논문의 정리 statement와 proof 전체를 재현한 것은 아니며, 정리 적용 시에는 위에 적은
+원문 section의 가정을 다시 확인해야 한다.
+\end{warningbox}
+
+\end{document}

@@ -1,0 +1,320 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar -- English Study Notes
+% Compile with:
+%   xelatex FILENAME.tex
+%   xelatex FILENAME.tex
+% or: latexmk -xelatex FILENAME.tex
+% =====================================================================
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[unicode,bookmarks=false]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\hypersetup{colorlinks=true,linkcolor=NoteBlue,citecolor=NoteBlue,urlcolor=NoteBlue}
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{}{\footnotesize Transformer Expressivity}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+\makechapterstyle{seminarnotes}{
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\grad}{\nabla}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Tr}{Tr}
+\tcbset{seminarbox/.style={enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,fonttitle=\bfseries\small,coltitle=black,attach title to upper={\quad}}}
+\newtcolorbox{keybox}[1][]{seminarbox,colback=NoteBlueLight,borderline west={1.8pt}{0pt}{NoteBlue},title={Key point#1}}
+\newtcolorbox{paperbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={From the original paper#1}}
+\newtcolorbox{suppbox}[1][]{seminarbox,colback=NoteWarmLight,borderline west={1.8pt}{0pt}{NoteWarm},title={Supplementary derivation#1}}
+\newtcolorbox{warningbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={Caution#1}}
+\newtcolorbox{presentbox}{seminarbox,colback=white,borderline west={2.2pt}{0pt}{black!70},fontupper=\footnotesize,top=1.2mm,bottom=1.2mm,before={\par},before skip=0.5em,after skip=0.5em,title={How to say it in the presentation}}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\begin{document}
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 4\par}
+\vspace{1.4cm}
+{\HUGE\bfseries Transformer Expressivity\par}
+\vspace{0.55cm}
+{\large English seminar study notes\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+\begin{minipage}{0.86\textwidth}
+\small
+These notes are an English companion to the seminar handout.  The emphasis is on
+mathematical derivations that can be followed line by line, on separating theorem
+statements from interpretation, and on identifying the assumptions under which each
+claim is valid.
+\end{minipage}
+\vfill
+{\small\textbf{Primary readings}\\[0.25em]
+Yun et al., \textbf{Are Transformers Universal Approximators of Sequence-to-Sequence Functions?}, ICLR 2020.\\Bhojanapalli et al., \textbf{Low-Rank Bottleneck in Multi-head Attention Models}, ICML 2020.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+\tableofcontents*
+\clearpage
+
+\chapter{Notation and the three levels of expressivity}
+\section{Matrix conventions}
+Let a length-$n$ sequence with token dimension $d$ be represented as $X=[x_1,\ldots,x_n]\in\R^{d\times n}$, so columns are tokens.  A single attention head forms
+\[
+Q=W_QX,\qquad K=W_KX,\qquad V=W_VX,
+\]
+and outputs, schematically,
+\[
+\operatorname{Attn}(X)=V\,\operatorname{softmax}(K^\top Q),
+\]
+where the softmax is column-wise under this convention.  Other papers transpose every matrix; the mathematical content is unchanged if one is consistent.
+
+\section{Three questions that should not be mixed}
+\begin{enumerate}
+\item \textbf{Block-level representation:} which attention matrices can one head produce?
+\item \textbf{Network-level approximation:} which continuous sequence-to-sequence functions can a deep Transformer approximate?
+\item \textbf{Efficient representation:} how much depth, width, and precision are required?
+\end{enumerate}
+Universal approximation answers the second question, not automatically the first or third.
+
+\begin{presentbox}
+A Transformer can be universal even if an individual attention head has a rank bottleneck.  Universality is a statement about the composition of many blocks, not about unrestricted one-layer attention matrices.
+\end{presentbox}
+
+\chapter{Permutation symmetry of self-attention}
+\section{Self-attention without positional information}
+Let $P\in\R^{n\times n}$ be a permutation matrix.  Reordering the tokens gives $XP$.  Then
+\[
+Q(XP)=W_QXP=Q(X)P,
+\]
+and similarly $K(XP)=K(X)P$, $V(XP)=V(X)P$.  Hence
+\[
+K(XP)^\top Q(XP)=P^\top K(X)^\top Q(X)P.
+\]
+Because column-wise softmax commutes with simultaneous row/column permutation,
+\[
+\operatorname{softmax}(P^\top AP)=P^\top\operatorname{softmax}(A)P.
+\]
+Therefore
+\begin{align*}
+\operatorname{Attn}(XP)
+&=V(X)P\,P^\top\operatorname{softmax}(K^\top Q)P\\
+&=\operatorname{Attn}(X)P.
+\end{align*}
+A token-wise feed-forward network also commutes with $P$, so the whole Transformer without positional information is permutation equivariant:
+\[
+\boxed{T(XP)=T(X)P.}
+\]
+
+\section{What the symmetry excludes}
+If a target function $F$ distinguishes absolute token positions, then $F(XP)\neq F(X)P$ for some $P$.  Such a function cannot be uniformly represented by a position-free Transformer, no matter how it is trained.
+
+\begin{presentbox}
+Before discussing universal approximation, identify the symmetry class.  Without positional information, the correct target class is permutation-equivariant sequence-to-sequence functions.
+\end{presentbox}
+
+\chapter{Universal approximation: what the theorem actually says}
+\section{$L^p$ approximation on a compact domain}
+Let $K\subset\R^{d\times n}$ be compact and let $F:K\to\R^{d\times n}$ be continuous.  A typical approximation statement uses
+\[
+d_p(F,G)=\left(\int_K\|F(X)-G(X)\|_p^p\,dX\right)^{1/p}.
+\]
+Universal approximation means: for every $\varepsilon>0$, there exists a Transformer $G$ in the specified architectural class such that $d_p(F,G)<\varepsilon$.
+
+\section{Yun et al.: fixed-width universality}
+A striking result of Yun et al. is that a Transformer architecture with a constant number of heads and constant head/feed-forward width can approximate every continuous permutation-equivariant sequence-to-sequence function on a compact domain.  In their notation, the construction can be placed in a class often summarized as
+\[
+\mathcal T_{2,1,4},
+\]
+corresponding to two heads, scalar head size, and small feed-forward width, while depth is allowed to grow.
+
+\begin{warningbox}
+``Fixed width'' does not mean ``constant total complexity.''  The proof can require very large depth as the desired accuracy and input dimension change.
+\end{warningbox}
+
+\section{Why the result is plausible}
+The architecture need not store an arbitrary high-dimensional function in a single layer.  Depth allows it to build a discrete contextual code, route information conditionally, and then decode the desired output.
+
+\begin{presentbox}
+The surprising part of the theorem is not that a large Transformer is expressive.  It is that width can remain bounded while depth carries the burden of universality.
+\end{presentbox}
+
+\chapter{The proof idea: contextual mappings}
+\section{Why token-wise MLPs are insufficient}
+A token-wise map $g$ has the form
+\[
+G(X)=[g(x_1),\ldots,g(x_n)].
+\]
+It cannot distinguish the same token value appearing in different sequence contexts.  Attention is needed to make a token representation depend on the rest of the sequence.
+
+\section{Contextual IDs}
+The proof constructs an intermediate map in which each token obtains a representation that uniquely identifies both its own quantized value and the relevant global context.  Once these contextual IDs are distinct, a token-wise network can map them to the desired output values.
+
+\section{Three proof stages}
+The high-level proof is:
+\begin{enumerate}
+\item \textbf{Quantize.} Approximate the continuous target by a piecewise-constant function on a fine grid.
+\item \textbf{Contextualize and route.} Use an idealized Transformer with hard selections to assign distinguishable contextual codes and implement the grid function.
+\item \textbf{Approximate the idealized operations.} Replace hardmax/piecewise gadgets by ordinary softmax and ReLU blocks with sufficiently sharp parameters.
+\end{enumerate}
+Continuity and compactness control the approximation error introduced by the grid and by replacing idealized operations.
+
+\begin{suppbox}
+The logical structure is the same as many classical UAT proofs: first reduce an arbitrary continuous function to a finite combinatorial object, then prove that the architecture can realize that object, then approximate the idealized components by the actual activation family.
+\end{suppbox}
+
+\begin{presentbox}
+The core role of attention in the proof is to create context-dependent identifiers.  Once a token knows ``who it is in this sequence,'' a small feed-forward network can decode the desired output.
+\end{presentbox}
+
+\chapter{Positional encoding as symmetry breaking}
+\section{Adding absolute position}
+Let $E=[e_1,\ldots,e_n]$ be a positional code and feed $X+E$ into the Transformer.  A token permutation changes $X$ but not the association between $e_j$ and position $j$, so the permutation-equivariance constraint is broken.
+
+\section{Universality for arbitrary fixed-length sequence maps}
+Yun et al. show that with trainable positional encodings, the same basic architecture can approximate arbitrary continuous fixed-length sequence-to-sequence functions, not only permutation-equivariant ones.
+
+\section{The exact scope}
+The theorem is for a fixed sequence length $n$ and compact input domain.  It does not imply length generalization to $n'>n$, nor does it state that a learned positional encoding extrapolates algorithmically.
+
+\begin{presentbox}
+Positional encoding is mathematically a symmetry-breaking device.  It enlarges the target function class from permutation-equivariant maps to arbitrary continuous maps on a fixed-length sequence space.
+\end{presentbox}
+
+\chapter{The expressivity of a single attention matrix}
+\section{The softmax inverse problem}
+Suppose we want a single head to produce a positive stochastic matrix $A$.  Before softmax, the score matrix has the form
+\[
+S=K^\top Q=X^\top W_K^\top W_QX.
+\]
+If the projected key/query dimension is $d_k$, then
+\[
+\rank(S)\le d_k.
+\]
+Softmax is nonlinear, but this low-dimensional score factorization still constrains which attention patterns can be produced.
+
+\section{Bhojanapalli et al.: sufficient dimension}
+Under suitable full-rank assumptions on the input representation and sufficiently large key/query dimension, one can solve for projection matrices whose scores realize a desired positive stochastic attention pattern after softmax.  The construction effectively works by taking a logarithm of the desired probabilities up to column-wise additive constants and factorizing the resulting score matrix.
+
+\section{Low-rank bottleneck}
+When $d_k$ is too small relative to sequence length, there exist attention matrices that cannot be represented by a single head on a fixed input.  The obstruction comes from the low-rank score factorization.
+
+\section{Why this does not contradict UAT}
+Deep Transformers can use multiple heads, intermediate nonlinear transformations, and many layers.  A restriction on one attention matrix therefore does not imply a corresponding restriction on the function class of the whole deep network.
+
+\begin{presentbox}
+There are two different notions of expressivity: the set of attention matrices one layer can instantiate, and the set of functions a deep Transformer can approximate.  The first can be low-rank constrained while the second is universal.
+\end{presentbox}
+
+\chapter{Depth, width, and efficiency}
+\section{Small width can hide enormous depth}
+A universal approximation theorem is existential.  If the construction needs a grid with resolution $\delta$ in a $dn$-dimensional domain, the number of grid cells can scale like
+\[
+O(\delta^{-dn}),
+\]
+which exhibits the usual curse of dimensionality.  A fixed-width network may therefore require impractically large depth.
+
+\section{Depth as sequential computation}
+With width fixed, depth provides repeated opportunities to compare, route, and rewrite token representations.  In the UAT proof, this sequential resource is what compensates for small head and MLP widths.
+
+\section{What the theorem does not imply}
+Universal approximation does not imply:
+\begin{itemize}
+\item that SGD finds the constructive solution;
+\item polynomial sample complexity;
+\item efficient depth or parameter count;
+\item length extrapolation;
+\item computational tractability of inference;
+\item interpretability of learned attention weights.
+\end{itemize}
+
+\begin{presentbox}
+Expressivity is a feasibility statement.  Learnability, efficiency, and generalization are separate questions, and later weeks study exactly those gaps.
+\end{presentbox}
+
+\chapter{Presentation checklist}
+\section{Eight formulas to keep}
+\begin{align*}
+&Q=W_QX,\quad K=W_KX,\quad V=W_VX,\\
+&T(XP)=T(X)P\quad\text{(no positional information)},\\
+&d_p(F,G)=\left(\int_K\|F(X)-G(X)\|_p^p dX\right)^{1/p},\\
+&\mathcal T_{2,1,4}\quad\text{(fixed-width UAT construction)},\\
+&X\mapsto X+E\quad\text{breaks permutation symmetry},\\
+&S=K^\top Q,\\
+&\rank(S)\le d_k,\\
+&\text{single-head matrix expressivity}\neq\text{deep-network universality}.
+\end{align*}
+
+\section{Common mistakes}
+\begin{itemize}
+\item Omitting the fixed-length and compact-domain assumptions.
+\item Saying that positional encoding is required for permutation-equivariant universality.
+\item Treating fixed width as an efficiency theorem.
+\item Using the rank of $K^\top Q$ as if it directly bounded the rank of the post-softmax matrix.
+\item Inferring SGD learnability from an existential construction.
+\end{itemize}
+
+\begin{presentbox}
+Thirty-second conclusion: self-attention without positional information is permutation equivariant.  Despite strong one-layer structural constraints, sufficiently deep fixed-width Transformers are universal for continuous equivariant maps; positional encoding breaks the symmetry and extends the result to arbitrary continuous fixed-length sequence maps.
+\end{presentbox}
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\begin{itemize}
+\item Yun, C. et al. \emph{Are Transformers Universal Approximators of Sequence-to-Sequence Functions?} ICLR, 2020.
+\item Bhojanapalli, S. et al. \emph{Low-Rank Bottleneck in Multi-head Attention Models}. ICML, 2020.
+\end{itemize}
+\end{document}

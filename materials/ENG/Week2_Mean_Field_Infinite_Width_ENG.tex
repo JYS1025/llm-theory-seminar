@@ -1,0 +1,416 @@
+% !TEX program = xelatex
+% =====================================================================
+% LLM Theory Seminar -- English Study Notes
+% Compile with:
+%   xelatex FILENAME.tex
+%   xelatex FILENAME.tex
+% or: latexmk -xelatex FILENAME.tex
+% =====================================================================
+\documentclass[11pt,a4paper,oneside,openany]{memoir}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,longtable,array,tabularx,makecell}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[unicode,bookmarks=false]{hyperref}
+\usepackage{cleveref}
+\usepackage{needspace}
+\setlrmarginsandblock{27mm}{27mm}{*}
+\setulmarginsandblock{24mm}{28mm}{*}
+\checkandfixthelayout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
+\setlength{\headheight}{15pt}
+\linespread{1.055}\selectfont
+\setlist[itemize]{topsep=0.28em,itemsep=0.12em,parsep=0pt,leftmargin=1.55em}
+\setlist[enumerate]{topsep=0.28em,itemsep=0.16em,parsep=0pt,leftmargin=1.75em}
+\definecolor{NoteBlue}{HTML}{294E6B}
+\definecolor{NoteBlueLight}{HTML}{F2F6F9}
+\definecolor{NoteGray}{HTML}{5A6268}
+\definecolor{NoteGrayLight}{HTML}{F6F6F4}
+\definecolor{NoteWarm}{HTML}{7A6545}
+\definecolor{NoteWarmLight}{HTML}{FAF7F0}
+\hypersetup{colorlinks=true,linkcolor=NoteBlue,citecolor=NoteBlue,urlcolor=NoteBlue}
+\makepagestyle{seminar}
+\makeoddhead{seminar}{\footnotesize LLM Theory Seminar}{}{\footnotesize Mean-Field Theory \& Infinite Width}
+\makeoddfoot{seminar}{}{\footnotesize\thepage}{}
+\makeheadrule{seminar}{\textwidth}{0.35pt}
+\pagestyle{seminar}
+\aliaspagestyle{chapter}{seminar}
+\makechapterstyle{seminarnotes}{
+  \setlength{\beforechapskip}{8pt}
+  \setlength{\midchapskip}{8pt}
+  \setlength{\afterchapskip}{22pt}
+  \renewcommand{\chapterheadstart}{\vspace*{\beforechapskip}}
+  \renewcommand{\chapnamefont}{\normalfont\small\bfseries}
+  \renewcommand{\chapnumfont}{\normalfont\bfseries\fontsize{34}{38}\selectfont\color{NoteBlue}}
+  \renewcommand{\chaptitlefont}{\normalfont\huge\bfseries\color{black}}
+  \renewcommand{\printchaptername}{}
+  \renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\chapnumfont\thechapter}
+  \renewcommand{\afterchapternum}{\par\nobreak\color{black}\vskip\midchapskip}
+  \renewcommand{\printchaptertitle}[1]{\chaptitlefont ##1}
+  \renewcommand{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}
+}
+\chapterstyle{seminarnotes}
+\setsecheadstyle{\Large\bfseries}
+\setsubsecheadstyle{\large\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setbeforesecskip{-1.3\baselineskip plus -0.2\baselineskip minus -0.1\baselineskip}
+\setaftersecskip{0.55\baselineskip}
+\setbeforesubsecskip{-0.9\baselineskip plus -0.15\baselineskip minus -0.1\baselineskip}
+\setaftersubsecskip{0.35\baselineskip}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\grad}{\nabla}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\Tr}{Tr}
+\tcbset{seminarbox/.style={enhanced,breakable,sharp corners,boxrule=0pt,frame hidden,left=3.2mm,right=3mm,top=1.8mm,bottom=1.8mm,before={\par\Needspace{5\baselineskip}},before skip=0.8em,after skip=0.8em,fonttitle=\bfseries\small,coltitle=black,attach title to upper={\quad}}}
+\newtcolorbox{keybox}[1][]{seminarbox,colback=NoteBlueLight,borderline west={1.8pt}{0pt}{NoteBlue},title={Key point#1}}
+\newtcolorbox{paperbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={From the original paper#1}}
+\newtcolorbox{suppbox}[1][]{seminarbox,colback=NoteWarmLight,borderline west={1.8pt}{0pt}{NoteWarm},title={Supplementary derivation#1}}
+\newtcolorbox{warningbox}[1][]{seminarbox,colback=NoteGrayLight,borderline west={1.8pt}{0pt}{NoteGray},title={Caution#1}}
+\newtcolorbox{presentbox}{seminarbox,colback=white,borderline west={2.2pt}{0pt}{black!70},fontupper=\footnotesize,top=1.2mm,bottom=1.2mm,before={\par},before skip=0.5em,after skip=0.5em,title={How to say it in the presentation}}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\begin{document}
+\begin{titlingpage}
+\thispagestyle{empty}
+\vspace*{1.2cm}
+{\small\bfseries LLM Theory Seminar \hfill Week 2\par}
+\vspace{1.4cm}
+{\HUGE\bfseries Mean-Field Theory and\\[0.18em]Infinite-Width Dynamics\par}
+\vspace{0.55cm}
+{\large English seminar study notes\par}
+\vspace{0.9cm}
+\rule{\textwidth}{0.7pt}
+\vspace{1.1cm}
+\begin{minipage}{0.86\textwidth}
+\small
+These notes are an English companion to the seminar handout.  The emphasis is on
+mathematical derivations that can be followed line by line, on separating theorem
+statements from interpretation, and on identifying the assumptions under which each
+claim is valid.
+\end{minipage}
+\vfill
+{\small\textbf{Primary readings}\\[0.25em]
+Mei, Montanari, Nguyen, \textbf{A Mean Field View of the Landscape of Two-Layer Neural Networks}, PNAS 2018.\\Chizat and Bach, \textbf{On the Global Convergence of Gradient Descent for Over-parameterized Models using Optimal Transport}, NeurIPS 2018.
+\par}
+\vspace{0.8cm}
+{\small September 2026\par}
+\end{titlingpage}
+\tableofcontents*
+\clearpage
+
+\chapter{Notation and the mean-field picture}
+\section{Notation map}
+We study a two-layer model written as an average of neurons,
+\[
+f_m(x;\Theta)=\frac1m\sum_{i=1}^m a_i\,\sigma(w_i^\top x),
+\qquad \theta_i=(a_i,w_i).
+\]
+The associated empirical parameter measure is
+\[
+\rho^{(m)}=\frac1m\sum_{i=1}^m\delta_{\theta_i}.
+\]
+The essential observation is that the network depends on the particles only through this empirical measure.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.2\textwidth} *{3}{>{\raggedright\arraybackslash}X}}
+\toprule
+Concept & These notes & Mei--Montanari--Nguyen & Chizat--Bach\\
+\midrule
+neuron parameter & $\theta=(a,w)$ & $\theta$ & $w$\\
+empirical law & $\rho^{(m)}$ & $\hat\rho^{(N)}$ & $\mu_m$\\
+measure risk & $\mathcal R(\rho)$ & $R(\rho)$ & $F(\mu)$\\
+first variation & $\Psi(\theta;\rho)$ & $\Psi(\theta;\rho)$ & $F'(\mu)$\\
+transport metric & $W_2$ & implicit PDE viewpoint & Wasserstein/optimal transport\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{The conceptual chain}
+The week is one chain of changes of representation:
+\[
+\begin{aligned}
+\text{finite neurons}&\longrightarrow\text{interacting particles}
+\longrightarrow\text{empirical measure}\\
+&\longrightarrow\text{continuity PDE}
+\longrightarrow W_2\text{-gradient flow}.
+\end{aligned}
+\]
+The infinite-width limit does not merely mean ``replace a sum by an integral.''  It changes the optimization state space from a Euclidean vector of parameters to a probability measure.
+
+\begin{presentbox}
+Mean-field theory treats neurons as exchangeable particles.  Width going to infinity turns the empirical particle cloud into a deterministic distribution whose evolution is described by a transport PDE.
+\end{presentbox}
+
+\chapter{A two-layer network as a particle system}
+\section{Network average and square risk}
+Let $(x,y)\sim P$ and
+\[
+f_\rho(x)=\int a\,\sigma(w^\top x)\,\rho(d a,dw).
+\]
+For the empirical measure $\rho^{(m)}$, this is exactly the finite network.  Consider the population square loss
+\[
+\mathcal R(\rho)=\frac12\E\bigl[(y-f_\rho(x))^2\bigr].
+\]
+Expand the square:
+\begin{align*}
+\mathcal R(\rho)
+&=\frac12\E[y^2]
+-\E\left[y\int\phi(x;\theta)\rho(d\theta)\right]
++\frac12\E\left[\int\phi(x;\theta)\rho(d\theta)
+\int\phi(x;\theta')\rho(d\theta')\right]\\
+&=R_\# +\int V(\theta)\rho(d\theta)
++\frac12\iint U(\theta,\theta')\rho(d\theta)\rho(d\theta'),
+\end{align*}
+where $\phi(x;\theta)=a\sigma(w^\top x)$ and
+\[
+V(\theta)=-\E[y\phi(x;\theta)],\qquad
+U(\theta,\theta')=\E[\phi(x;\theta)\phi(x;\theta')].
+\]
+This pairwise-interaction form is exactly the form that appears in classical mean-field particle systems.
+
+\section{First variation}
+Perturb $\rho$ by moving an infinitesimal amount of mass toward $\theta$.  The functional derivative is
+\[
+\Psi(\theta;\rho)
+=V(\theta)+\int U(\theta,\theta')\rho(d\theta').
+\]
+Formally,
+\[
+\frac{\delta \mathcal R}{\delta \rho}(\theta)=\Psi(\theta;\rho)
+\]
+up to an additive constant that is irrelevant for transport.  The parameter-space force on a particle is therefore
+\[
+-\nabla_\theta\Psi(\theta;\rho).
+\]
+
+\section{Why a time rescaling appears}
+Because the network output contains a factor $1/m$, a raw gradient with respect to one particle is typically $O(1/m)$.  To observe an $O(1)$ motion of every particle as $m\to\infty$, one rescales learning rate or time.  This is not cosmetic: different width-dependent scalings lead to different infinite-width regimes.
+
+\begin{presentbox}
+The finite network is already an interacting-particle model.  The only new ingredient at infinite width is to describe the particle cloud by its empirical distribution rather than by a labeled vector of neurons.
+\end{presentbox}
+
+\chapter{Empirical measures and the infinite-width risk}
+\section{Permutation symmetry}
+Relabeling hidden neurons does not change the function.  The empirical measure
+\[
+\rho^{(m)}=\frac1m\sum_{i=1}^m\delta_{\theta_i}
+\]
+quotients out this symmetry automatically.  Any symmetric observable of the particles can be expressed in terms of $\rho^{(m)}$.
+
+\section{The finite risk is exactly a measure functional}
+For every finite $m$,
+\[
+f_m(x)=\int\phi(x;\theta)\rho^{(m)}(d\theta),
+\]
+so
+\[
+\mathcal R_m(\Theta)=\mathcal R(\rho^{(m)}).
+\]
+There is no approximation in this identity.  The approximation enters when the random empirical measure is replaced by its deterministic infinite-particle limit.
+
+\section{Convexity in measure space}
+For square loss, $f_\rho$ is linear in $\rho$ and $z\mapsto \frac12(y-z)^2$ is convex.  Hence
+\[
+\mathcal R((1-s)\rho_0+s\rho_1)
+\le (1-s)\mathcal R(\rho_0)+s\mathcal R(\rho_1).
+\]
+Thus the risk can be convex as a functional of measures even though the finite-particle parameterization is highly nonconvex.
+
+\begin{warningbox}
+Convexity of $\mathcal R(\rho)$ does not by itself imply that every Wasserstein stationary point is globally optimal.  Wasserstein dynamics is constrained by how mass can move in parameter space; stationarity is a geometric condition, not merely a linear-space first-order condition.
+\end{warningbox}
+
+\begin{presentbox}
+The measure formulation reveals hidden convexity, but it does not magically remove optimization geometry.  The right state space and the right notion of gradient are both essential.
+\end{presentbox}
+
+\chapter{Continuity equation and Wasserstein gradient flow}
+\section{From particle ODEs to a PDE}
+Suppose particles follow
+\[
+\dot\theta_i(t)=v_t(\theta_i(t)).
+\]
+Conservation of probability mass implies the continuity equation
+\[
+\partial_t\rho_t+\nabla_\theta\cdot(\rho_t v_t)=0.
+\]
+For steepest descent of the measure risk, take
+\[
+v_t(\theta)=-\nabla_\theta\Psi(\theta;\rho_t).
+\]
+Then
+\[
+\boxed{\partial_t\rho_t
+=\nabla_\theta\cdot\left(\rho_t\nabla_\theta\Psi(\theta;\rho_t)\right).}
+\]
+This is the mean-field training PDE.
+
+\section{$W_2$ as transport geometry}
+For probability measures $\mu,\nu$ with finite second moment,
+\[
+W_2^2(\mu,\nu)
+=\inf_{\pi\in\Pi(\mu,\nu)}
+\int\|x-y\|^2\,\pi(dx,dy).
+\]
+Unlike an $L^2$ distance between density values, $W_2$ measures the physical cost of moving probability mass.
+
+\section{JKO discretization}
+The Wasserstein analogue of an implicit proximal step is
+\[
+\rho_{k+1}
+\in\argmin_\rho
+\left\{
+\mathcal R(\rho)+\frac{1}{2\tau}W_2^2(\rho,\rho_k)
+\right\}.
+\]
+As $\tau\to0$, these minimizing movements generate the Wasserstein gradient flow under suitable conditions.
+
+\section{Risk dissipation}
+Assume enough smoothness and decay at infinity.  Then
+\begin{align*}
+\frac{d}{dt}\mathcal R(\rho_t)
+&=\int \Psi(\theta;\rho_t)\,\partial_t\rho_t(d\theta)\\
+&=\int \Psi\,\nabla\cdot(\rho_t\nabla\Psi)\,d\theta\\
+&=-\int \|\nabla\Psi(\theta;\rho_t)\|^2\rho_t(d\theta)\le0,
+\end{align*}
+where the last line uses integration by parts.
+
+\begin{presentbox}
+Euclidean gradient flow moves points in the direction of minus the parameter gradient.  Wasserstein gradient flow moves probability mass with velocity minus the spatial gradient of the first variation.  The continuity equation is simply conservation of that moving mass.
+\end{presentbox}
+
+\chapter{Mei--Montanari--Nguyen: particles converge to a PDE}
+\section{What the limit theorem says structurally}
+Under regularity assumptions and the appropriate width/time scaling, as $m\to\infty$:
+\begin{itemize}
+\item the empirical measure $\rho_t^{(m)}$ converges to a deterministic law $\rho_t$;
+\item $\rho_t$ solves a nonlinear PDE of McKean--Vlasov type;
+\item finite sets of neurons become asymptotically independent with common law $\rho_t$.
+\end{itemize}
+The last property is the classical \emph{propagation of chaos} statement.
+
+\section{Why ``chaos'' means independence}
+Initially, particles may be i.i.d.  Training couples them through the common empirical measure, so finite width creates dependence.  Yet in the infinite-particle limit, any fixed number of tagged particles behaves as independent copies of a nonlinear process whose coefficients depend on the deterministic population law.  Interaction survives through $\rho_t$; direct finite-particle correlation vanishes.
+
+\section{Noisy SGD and diffusion}
+If stochastic-gradient noise survives the scaling limit, the law can satisfy a Fokker--Planck equation of the schematic form
+\[
+\partial_t\rho_t
+=\nabla\cdot(\rho_t\nabla\Psi)
++\beta^{-1}\Delta\rho_t.
+\]
+The Laplacian spreads mass and competes with energy descent.  The stationary object is then associated with an energy--entropy free energy rather than with the bare risk alone.
+
+\begin{presentbox}
+The theorem justifies replacing a huge but finite neuron system by a deterministic PDE.  It is a law-of-large-numbers statement for an interacting optimization system, not merely a heuristic integral approximation.
+\end{presentbox}
+
+\chapter{Global convergence and the Chizat--Bach viewpoint}
+\section{A general measure optimization problem}
+A broad two-layer model can be written
+\[
+f_\mu=\int \Phi(w)\,d\mu(w),
+\qquad
+F(\mu)=R(f_\mu),
+\]
+possibly with additional regularization.  The map $\mu\mapsto f_\mu$ is linear, while $R$ may be convex in function space.
+
+\section{Why homogeneity matters}
+For positively homogeneous parameterizations such as ReLU networks, scaling a neuron changes its amplitude in a structured way.  Chizat--Bach exploit this geometry together with optimal-transport flow and support assumptions to rule out certain non-optimal limiting configurations.
+
+\section{What additional assumptions buy you}
+A global convergence theorem needs more than monotone risk.  Typical ingredients include:
+\begin{itemize}
+\item a sufficiently rich initial support;
+\item regularity of the feature map and the loss;
+\item homogeneity or separation conditions that allow mass to escape non-optimal stationary configurations;
+\item a topology strong enough to pass to limits of the flow.
+\end{itemize}
+The correct lesson is therefore conditional: the mean-field formulation makes global analysis possible, but convergence is not automatic for every architecture and initialization.
+
+\begin{presentbox}
+Mean-field convexity explains why global optimization can become tractable, while optimal-transport geometry explains what trajectories are actually allowed.  Chizat--Bach combine both rather than relying on convexity alone.
+\end{presentbox}
+
+\chapter{Infinite width is not a single regime}
+\section{Mean-field versus lazy training}
+Two important width limits are qualitatively different.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.24\textwidth}XX}
+\toprule
+ & Mean-field / feature-learning & Lazy / kernel-like\\
+\midrule
+parameter motion & $O(1)$ after the appropriate rescaling & small around initialization\\
+feature evolution & substantial & small\\
+state description & evolving parameter measure $\rho_t$ & nearly fixed tangent features\\
+limit object & nonlinear transport PDE & linearized/kernel dynamics\\
+optimization geometry & Wasserstein & Euclidean/RKHS-like\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Why scaling decides the limit}
+Write a scaled model schematically as
+\[
+f_m(x)=\alpha_m\sum_{i=1}^m\phi(x;\theta_i).
+\]
+Changing $\alpha_m$ and the learning-rate scaling changes how much each neuron must move to create an $O(1)$ function change.  The phrase ``$m\to\infty$'' is therefore incomplete unless the parameterization and training scaling are also stated.
+
+\section{Bridge to NTK}
+The next week studies the opposite extreme: parameters move so little that the network remains close to its first-order Taylor expansion,
+\[
+f(\theta)\approx f(\theta_0)+J_{\theta_0}(\theta-\theta_0).
+\]
+Mean-field theory and NTK theory are not contradictory descriptions; they are different scaling limits of wide neural networks.
+
+\begin{presentbox}
+Never say simply ``at infinite width the network becomes a kernel.''  Infinite width admits multiple limits.  The mean-field limit preserves feature learning; the lazy limit freezes features to first order.
+\end{presentbox}
+
+\chapter{Presentation checklist}
+\section{Six equations worth keeping on the board}
+\begin{align*}
+&f_m(x)=\frac1m\sum_{i=1}^m\phi(x;\theta_i),\\
+&\rho^{(m)}=\frac1m\sum_i\delta_{\theta_i},\\
+&\mathcal R(\rho)=R_\#+\int V\,d\rho+\frac12\iint U\,d\rho\,d\rho,\\
+&\Psi(\theta;\rho)=\frac{\delta\mathcal R}{\delta\rho}(\theta),\\
+&\partial_t\rho=\nabla\cdot(\rho\nabla\Psi),\\
+&\frac{d}{dt}\mathcal R(\rho_t)
+=-\int\|\nabla\Psi\|^2\,d\rho_t.
+\end{align*}
+
+\section{Common mistakes}
+\begin{itemize}
+\item Treating the empirical-measure rewrite as an approximation; it is exact at finite width.
+\item Confusing linear convexity in measure space with geodesic convexity in Wasserstein space.
+\item Assuming every stationary solution of the PDE is globally optimal.
+\item Forgetting the width-dependent time/learning-rate scaling.
+\item Equating ``infinite width'' with ``NTK'' without specifying the regime.
+\end{itemize}
+
+\begin{presentbox}
+Thirty-second conclusion: a wide two-layer network can be viewed as an interacting particle system.  At infinite width, its empirical distribution follows a Wasserstein gradient-flow PDE.  This regime retains feature learning and is distinct from the lazy/NTK limit.
+\end{presentbox}
+
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
+\begin{itemize}
+\item Mei, S., Montanari, A., and Nguyen, P.-M. \emph{A Mean Field View of the Landscape of Two-Layer Neural Networks}. PNAS, 2018.
+\item Chizat, L. and Bach, F. \emph{On the Global Convergence of Gradient Descent for Over-parameterized Models using Optimal Transport}. NeurIPS, 2018.
+\item Chizat, L., Oyallon, E., and Bach, F. \emph{On Lazy Training in Differentiable Programming}. NeurIPS, 2019.
+\end{itemize}
+\end{document}
