@@ -6,14 +6,14 @@ An eight-week seminar on the mathematical and computational foundations of moder
 
 | Week | Topic | Study Notes | Slides | Video |
 |:---:|---|---|:---:|:---:|
-| 01 | Gradient Flow & Edge of Stability | [KOR PDF](materials/KOR/Week1_Gradient_Flow_Edge_of_Stability_KOR.pdf)<br>[ENG PDF](materials/ENG/Week1_Gradient_Flow_Edge_of_Stability_ENG.pdf) | Coming soon | Coming soon |
-| 02 | Mean-Field Theory & Infinite-Width Dynamics | [KOR PDF](materials/KOR/Week2_Mean_Field_Infinite_Width_KOR.pdf)<br>[ENG PDF](materials/ENG/Week2_Mean_Field_Infinite_Width_ENG.pdf) | Coming soon | Coming soon |
-| 03 | Neural Tangent Kernel, Lazy Training & Feature Learning | [KOR PDF](materials/KOR/Week3_NTK_Lazy_Feature_Learning_KOR.pdf)<br>[ENG PDF](materials/ENG/Week3_NTK_Lazy_Feature_Learning_ENG.pdf) | Coming soon | Coming soon |
-| 04 | Transformer Expressivity | [KOR PDF](materials/KOR/Week4_Transformer_Expressivity_KOR.pdf)<br>[ENG PDF](materials/ENG/Week4_Transformer_Expressivity_ENG.pdf) | Coming soon | Coming soon |
-| 05 | Transformer Computational Theory | [KOR PDF](materials/KOR/Week5_Transformer_Computational_Theory_KOR.pdf)<br>[ENG PDF](materials/ENG/Week5_Transformer_Computational_Theory_ENG.pdf) | Coming soon | Coming soon |
-| 06 | In-Context Learning Theory | [KOR PDF](materials/KOR/Week6_In_Context_Learning_Theory_KOR.pdf)<br>[ENG PDF](materials/ENG/Week6_In_Context_Learning_Theory_ENG.pdf) | Coming soon | Coming soon |
-| 07 | Chain-of-Thought & Reasoning Complexity | [KOR PDF](materials/KOR/Week7_Chain_of_Thought_Reasoning_Complexity_KOR.pdf)<br>[ENG PDF](materials/ENG/Week7_Chain_of_Thought_Reasoning_Complexity_ENG.pdf) | Coming soon | Coming soon |
-| 08 | Length & Algorithmic Generalization | [KOR PDF](materials/KOR/Week8_Length_Algorithmic_Generalization_KOR.pdf)<br>[ENG PDF](materials/ENG/Week8_Length_Algorithmic_Generalization_ENG.pdf) | Coming soon | Coming soon |
+| 01 | Gradient Flow & Edge of Stability | [KOR PDF](materials/KOR/week01/Week1_Gradient_Flow_Edge_of_Stability_KOR.pdf)<br>[ENG PDF](materials/ENG/week01/Week1_Gradient_Flow_Edge_of_Stability_ENG.pdf) | Coming soon | Coming soon |
+| 02 | Mean-Field Theory & Infinite-Width Dynamics | [KOR PDF](materials/KOR/week02/Week2_Mean_Field_Infinite_Width_KOR.pdf)<br>[ENG PDF](materials/ENG/week02/Week2_Mean_Field_Infinite_Width_ENG.pdf) | Coming soon | Coming soon |
+| 03 | Neural Tangent Kernel, Lazy Training & Feature Learning | [KOR PDF](materials/KOR/week03/Week3_NTK_Lazy_Feature_Learning_KOR.pdf)<br>[ENG PDF](materials/ENG/week03/Week3_NTK_Lazy_Feature_Learning_ENG.pdf) | Coming soon | Coming soon |
+| 04 | Transformer Expressivity | [KOR PDF](materials/KOR/week04/Week4_Transformer_Expressivity_KOR.pdf)<br>[ENG PDF](materials/ENG/week04/Week4_Transformer_Expressivity_ENG.pdf) | Coming soon | Coming soon |
+| 05 | Transformer Computational Theory | [KOR PDF](materials/KOR/week05/Week5_Transformer_Computational_Theory_KOR.pdf)<br>[ENG PDF](materials/ENG/week05/Week5_Transformer_Computational_Theory_ENG.pdf) | Coming soon | Coming soon |
+| 06 | In-Context Learning Theory | [KOR PDF](materials/KOR/week06/Week6_In_Context_Learning_Theory_KOR.pdf)<br>[ENG PDF](materials/ENG/week06/Week6_In_Context_Learning_Theory_ENG.pdf) | Coming soon | Coming soon |
+| 07 | Chain-of-Thought & Reasoning Complexity | [KOR PDF](materials/KOR/week07/Week7_Chain_of_Thought_Reasoning_Complexity_KOR.pdf)<br>[ENG PDF](materials/ENG/week07/Week7_Chain_of_Thought_Reasoning_Complexity_ENG.pdf) | Coming soon | Coming soon |
+| 08 | Length & Algorithmic Generalization | [KOR PDF](materials/KOR/week08/Week8_Length_Algorithmic_Generalization_KOR.pdf)<br>[ENG PDF](materials/ENG/week08/Week8_Length_Algorithmic_Generalization_ENG.pdf) | Coming soon | Coming soon |
 
 > Replace each `Coming soon` entry with a Markdown link when the corresponding slides or recording becomes available.
 
@@ -29,8 +29,16 @@ The notes are designed for graduate-level study and research presentations. They
 llm-theory-seminar/
 ├── README.md
 ├── materials/
-│   ├── KOR/          # Korean notes (.tex and .pdf)
-│   └── ENG/          # English notes (.tex and .pdf)
+│   ├── KOR/
+│   │   ├── week01/   # Korean source and PDF
+│   │   ├── week02/
+│   │   ├── ...
+│   │   └── week08/
+│   └── ENG/
+│       ├── week01/   # English source and PDF
+│       ├── week02/
+│       ├── ...
+│       └── week08/
 ├── slides/           # Presentation slides (optional)
 └── assets/           # Images and other repository assets (optional)
 ```
@@ -49,7 +57,7 @@ The PDF links in the seminar schedule use repository-relative paths and work dir
 The notes are intended to be compiled with XeLaTeX. Run the compiler twice so that the table of contents and cross-references are resolved correctly.
 
 ```bash
-cd materials/KOR   # or materials/ENG
+cd materials/KOR/week01   # or materials/ENG/week01
 xelatex <filename>.tex
 xelatex <filename>.tex
 ```
